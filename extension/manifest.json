@@ -1,0 +1,23 @@
+{
+    "name": "odoo_pos_restaurant",
+    "version": "0.1",
+    "manifest_version": 2,
+    "content_scripts": [
+        {
+            "matches": [
+                "http://*.dev.odoo.com/pos/*"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ],
+    "background": {
+        "scripts": [
+            "background.js"
+        ]
+    },
+    "browser_action": {
+        "default_icon": "printer.png"
+    }
+}
