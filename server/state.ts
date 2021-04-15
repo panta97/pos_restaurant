@@ -7,7 +7,7 @@ import {
   State,
 } from "./ordertypes";
 
-const getNextOrderState = async (
+const getOrderToPrint = async (
   order: OrderPrintType
 ): Promise<OrderToPrint> => {
   const prevOrder = await getOrder(order.id);
@@ -105,3 +105,5 @@ const areDifferent = (
   if (prevOrderLine.product_id !== currOrderLine.product_id) return true;
   return false;
 };
+
+export { getOrderToPrint };

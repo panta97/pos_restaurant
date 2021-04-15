@@ -2,6 +2,8 @@ import cors from "cors";
 import express, { Request, Response } from "express";
 import { bootstrapDB } from "./database/db";
 import { getOrder } from "./order";
+import { printOrderMock } from "./printer/printer";
+import { getOrderToPrint } from "./state";
 
 // init db
 bootstrapDB();
@@ -16,10 +18,10 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Express + TypeScript Server");
 });
 
-app.post("/print-order", (req: Request, res: Response) => {
-  console.log(req.body.orders);
-  getOrder(req.body.orderId, req.body.orders);
-  // printText("from express");
+app.post("/print-order", async (req: Request, res: Response) => {
+  const order = getOrder(req.body.orderId, req.body.orders);
+  const orderToPrint = await getOrderToPrint(order);
+  printOrderMock(orderToPrint);
   res.send("Express reponse");
 });
 
