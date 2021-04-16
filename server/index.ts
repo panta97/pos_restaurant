@@ -1,10 +1,13 @@
 import cors from "cors";
+import dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import { bootstrapDB } from "./database/db";
 import { getOrder } from "./order";
-import { printOrderMock } from "./printer/printer";
+import { printOrder, printOrderMock } from "./printer/printer";
 import { getOrderToPrint } from "./state";
 
+// set up enviroment variables
+dotenv.config();
 // init db
 bootstrapDB();
 // config express
@@ -22,6 +25,7 @@ app.post("/print-order", async (req: Request, res: Response) => {
   const order = getOrder(req.body.orderId, req.body.orders);
   const orderToPrint = await getOrderToPrint(order);
   printOrderMock(orderToPrint);
+  printOrder(orderToPrint);
   res.send("Express reponse");
 });
 

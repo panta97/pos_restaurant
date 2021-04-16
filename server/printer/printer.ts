@@ -14,7 +14,7 @@ const printOrderMock = (orderToPrint: OrderToPrint) => {
   let paper = `
     ${orderToPrint.id}
     ${orderToPrint.floor} / ${orderToPrint.table}`;
-  paper += "--------------";
+  paper += "\n--------------";
   paper += orderToPrint.printLines.reduce((acc, curr) => {
     acc += `\n${
       curr.state === State.NEW ? "NUEVO" : "CANCELADO"
@@ -27,4 +27,50 @@ const printOrderMock = (orderToPrint: OrderToPrint) => {
   console.log(paper);
 };
 
-export { printText, printOrderMock };
+const printOrder = (orderToPrint: OrderToPrint) => {
+  if (orderToPrint.printLines.length === 0) return;
+
+  const printer = new NTP.printer(TEST_PRINTER);
+  orderToPrint.printLines.forEach((orderPrintLine) => {
+    // print order, floor and table
+    // print new and cancelled in a single ticket
+    if (orderPrintLine.state === State.NEW) {
+      printer.bold(true);
+      printer.alignCenter();
+      printer.println(orderToPrint.id);
+      printer.table([
+        `PISO: ${orderToPrint.floor}`,
+        `MESA: ${orderToPrint.table}`,
+      ]);
+      printer.newLine();
+      printer.bold(false);
+    }
+
+    // print dish or drink state and time
+    printer.table([
+      `${orderPrintLine.state === State.NEW ? "NUEVO" : "CANCELADO"}`,
+      new Date().toLocaleTimeString(),
+    ]);
+    printer.table([
+      `Cant: ${orderPrintLine.orderline.qty}`,
+      `Plato: ${orderPrintLine.orderline.product_id}`,
+    ]);
+    // print order line
+    if (orderPrintLine.orderline.note) {
+      printer.newLine();
+      printer.alignLeft();
+      printer.print("NOTA: ");
+      printer.alignRight();
+      printer.print(orderPrintLine.orderline.note);
+    }
+
+    // print new and cancelled in a single ticket
+    if (orderPrintLine.state === State.NEW) {
+      printer.newLine();
+      printer.cut();
+    }
+  });
+  printer.execute();
+};
+
+export { printText, printOrder, printOrderMock };

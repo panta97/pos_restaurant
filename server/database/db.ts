@@ -4,18 +4,28 @@ import { open } from "sqlite";
 import sqlite3 from "sqlite3";
 import { OrderDbType, OrderPrintType } from "../ordertypes";
 
+const getDatabasePath = (): string => {
+  return process.env.NODE_ENV === "production"
+    ? "server/build/database/orderdb.sqlite"
+    : "database/orderdb.sqlite";
+};
+
 const bootstrapDB = () => {
-  const dbFile = "database/orderdb.sqlite";
+  const dbFile = getDatabasePath();
   if (!fs.existsSync(dbFile)) {
     const db = new sqlite3.Database(dbFile);
-    const schema = fs.readFileSync("database/schema.sql", "utf8");
+    const schemaPath =
+      process.env.NODE_ENV === "production"
+        ? "server/build/database/schema.sql"
+        : "database/schema.sql";
+    const schema = fs.readFileSync(schemaPath, "utf8");
     db.run(schema);
   }
 };
 
 const openDB = async () => {
   return await open({
-    filename: "database/orderdb.sqlite",
+    filename: getDatabasePath(),
     driver: sqlite3.Database,
   });
 };
