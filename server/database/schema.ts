@@ -1,4 +1,5 @@
-CREATE TABLE IF NOT EXISTS orders (
+const tableOrders = `
+    CREATE TABLE IF NOT EXISTS orders (
     id VARCHAR NOT NULL,
     f_floor VARCHAR NOT NULL,
     f_table VARCHAR NOT NULL,
@@ -6,10 +7,13 @@ CREATE TABLE IF NOT EXISTS orders (
     qty INTEGER NOT NULL,
     product_id INTEGER NOT NULL,
     note TEXT NULL
-);
+);`;
 
-CREATE TABLE IF NOT EXISTS products (
+const tableProducts = `
+    CREATE TABLE IF NOT EXISTS products (
     id INTEGER NOT NULL,
     name VARCHAR NOT NULL,
-    category VARCHAR NOT NULL
-);
+    category_id INTEGER NOT NULL
+);`;
+
+export { tableOrders, tableProducts };

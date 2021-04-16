@@ -41,7 +41,7 @@ const getOrderToPrint = async (
 const getOrderLineStates = (
   prevOrder: OrderPrintType,
   currOrder: OrderPrintType
-): OrderPrintLine[] => {
+): (OrderPrintLine | OrderPrintLine[])[] => {
   let orderLinesSet = new Set<number>();
   // pol = previous order line
   // col = current order line
@@ -53,7 +53,7 @@ const getOrderLineStates = (
   );
   // merge both order lines ids from col and pol into orderLines array
   const orderLines = Array.from(orderLinesSet).sort((a, b) => a - b);
-  let orderPrintLines: OrderPrintLine[] = [];
+  let orderPrintLines: (OrderPrintLine | OrderPrintLine[])[] = [];
   for (let i = 0; i < orderLines.length; i++) {
     const pol = prevOrder.multiprint_resume.find(
       (o) => o.order_line === orderLines[i]
@@ -79,19 +79,23 @@ const getOrderLineStates = (
     } else if (pol && col) {
       // check if it has been updated
       if (areDifferent(pol, col)) {
-        orderPrintLines.push({
-          targetPrinter: "test",
-          state: State.CANCELLED,
-          orderline: pol,
-        });
-        orderPrintLines.push({
-          targetPrinter: "test",
-          state: State.NEW,
-          orderline: col,
-        });
+        orderPrintLines.push([
+          {
+            targetPrinter: "test",
+            state: State.CANCELLED,
+            orderline: pol,
+          },
+          {
+            targetPrinter: "test",
+            state: State.NEW,
+            orderline: col,
+          },
+        ]);
       }
     }
   }
+  // example return
+  // [N, C, [N, C]]
   return orderPrintLines;
 };
 

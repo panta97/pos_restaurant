@@ -87,5 +87,5 @@ export interface OrderToPrint {
   id: string;
   floor: string;
   table: string;
-  printLines: OrderPrintLine[];
+  printLines: (OrderPrintLine | OrderPrintLine[])[];
 }

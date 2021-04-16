@@ -3,6 +3,7 @@ import fs from "fs";
 import { open } from "sqlite";
 import sqlite3 from "sqlite3";
 import { OrderDbType, OrderPrintType } from "../ordertypes";
+import { tableOrders, tableProducts } from "./schema";
 
 const getDatabasePath = (): string => {
   return process.env.NODE_ENV === "production"
@@ -14,12 +15,8 @@ const bootstrapDB = () => {
   const dbFile = getDatabasePath();
   if (!fs.existsSync(dbFile)) {
     const db = new sqlite3.Database(dbFile);
-    const schemaPath =
-      process.env.NODE_ENV === "production"
-        ? "server/build/database/schema.sql"
-        : "database/schema.sql";
-    const schema = fs.readFileSync(schemaPath, "utf8");
-    db.run(schema);
+    db.run(tableOrders);
+    db.run(tableProducts);
   }
 };
 
