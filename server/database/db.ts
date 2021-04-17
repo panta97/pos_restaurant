@@ -2,7 +2,7 @@
 import fs from "fs";
 import { open } from "sqlite";
 import sqlite3 from "sqlite3";
-import { OrderDbType, OrderPrintType } from "../ordertypes";
+import { OrderDb, OrderPrintType, ProductDb } from "../ordertypes";
 import { tableOrders, tableProducts } from "./schema";
 
 const getDatabasePath = (): string => {
@@ -30,18 +30,22 @@ const openDB = async () => {
 const saveOrder = async (order: OrderPrintType) => {
   const db = await openDB();
   await Promise.all(
-    order.multiprint_resume.map(async (mr) => {
+    order.printLines.map(async (pl) => {
       await db.run(
-        `insert into orders (id, f_floor, f_table, order_line, qty, product_id, note)
-        values (:id, :f_floor, :f_table, :order_line, :qty, :product_id, :note)`,
+        `insert into orders
+        (id, f_floor, f_table, order_line, qty, product_id, note, product_name, category_id)
+        values
+        (:id, :f_floor, :f_table, :order_line, :qty, :product_id, :note, :product_name, :category_id)`,
         {
           ":id": order.id,
           ":f_floor": order.floor,
           ":f_table": order.table,
-          ":order_line": mr.order_line,
-          ":qty": mr.qty,
-          ":product_id": mr.product_id,
-          ":note": mr.note,
+          ":order_line": pl.orderLine,
+          ":qty": pl.qty,
+          ":product_id": pl.productId,
+          ":note": pl.note,
+          ":product_name": pl.productName,
+          ":category_id": pl.categoryId,
         }
       );
     })
@@ -51,21 +55,23 @@ const saveOrder = async (order: OrderPrintType) => {
 const getOrder = async (orderId: string): Promise<OrderPrintType | boolean> => {
   const db = await openDB();
   const query = `
-  select id, f_floor, f_table, order_line, qty, product_id, note
+  select id, f_floor, f_table, order_line, qty, product_id, note, product_name, category_id
   from orders
   where id = ?
   `;
-  const order: OrderDbType[] = await db.all(query, [orderId]);
+  const order: OrderDb[] = await db.all(query, [orderId]);
   if (order.length === 0) return false;
   return {
     id: order[0].id,
     floor: order[0].f_floor,
     table: order[0].f_table,
-    multiprint_resume: order.map((o) => ({
-      order_line: o.order_line,
+    printLines: order.map((o) => ({
       qty: o.qty,
-      product_id: o.product_id,
+      orderLine: o.order_line,
       note: o.note,
+      productId: o.product_id,
+      productName: o.product_name,
+      categoryId: o.category_id,
     })),
   };
 };
@@ -75,4 +81,15 @@ const deleteOrder = async (orderId: string) => {
   await db.run(`delete from orders where id = :id`, { ":id": orderId });
 };
 
-export { bootstrapDB, saveOrder, getOrder, deleteOrder };
+const getProducts = async (productIds: number[]) => {
+  const db = await openDB();
+  const query = `
+    select id, name, category_id
+    from products
+    where id in (${productIds.join(",")})
+  `;
+  const products: ProductDb[] = await db.all(query);
+  return products;
+};
+
+export { bootstrapDB, saveOrder, getOrder, deleteOrder, getProducts };

@@ -35,21 +35,24 @@ const printHeader = (printer: NTP.printer, orderToPrint: OrderToPrint) => {
   printer.newLine();
   printer.bold(false);
 };
-const printLine = (printer: NTP.printer, orderPrintLine: OrderPrintLine) => {
+const printOrderLine = (
+  printer: NTP.printer,
+  orderPrintLine: OrderPrintLine
+) => {
   printer.table([
     `${orderPrintLine.state === State.NEW ? "NUEVO" : "CANCELADO"}`,
     new Date().toLocaleTimeString(),
   ]);
   printer.table([
-    `Cant: ${orderPrintLine.orderline.qty}`,
-    `Plato: ${orderPrintLine.orderline.product_id}`,
+    `Cant: ${orderPrintLine.printLine.qty}`,
+    orderPrintLine.printLine.productName,
   ]);
   // print order line
-  if (orderPrintLine.orderline.note) {
+  if (orderPrintLine.printLine.note) {
     printer.alignLeft();
     printer.print("NOTA: ");
     printer.alignRight();
-    printer.print(orderPrintLine.orderline.note);
+    printer.print(orderPrintLine.printLine.note);
   }
 };
 
@@ -63,13 +66,13 @@ const printOrder = (orderToPrint: OrderToPrint) => {
     // it is a bundle order [C, N]
     if (Array.isArray(orderPrintLine)) {
       orderPrintLine.forEach((opl, i) => {
-        printLine(printer, opl);
+        printOrderLine(printer, opl);
         if (i < orderPrintLine.length - 1)
           printer.println("------------------------------------------");
       });
       // it is a simple order [N] | [C]
     } else {
-      printLine(printer, orderPrintLine);
+      printOrderLine(printer, orderPrintLine);
     }
     printer.cut();
   });

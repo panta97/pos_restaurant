@@ -1,9 +1,9 @@
 import { deleteOrder, getOrder, saveOrder } from "./database/db";
 import {
-  MultiprintLineExt,
   OrderPrintLine,
   OrderPrintType,
   OrderToPrint,
+  PrintLine,
   State,
 } from "./ordertypes";
 
@@ -29,10 +29,10 @@ const getOrderToPrint = async (
       id: order.id,
       floor: order.floor,
       table: order.table,
-      printLines: order.multiprint_resume.map((mr) => ({
+      printLines: order.printLines.map((mr) => ({
         targetPrinter: "test",
         state: State.NEW,
-        orderline: mr,
+        printLine: mr,
       })),
     };
   }
@@ -45,35 +45,27 @@ const getOrderLineStates = (
   let orderLinesSet = new Set<number>();
   // pol = previous order line
   // col = current order line
-  prevOrder.multiprint_resume.forEach((pol) =>
-    orderLinesSet.add(pol.order_line)
-  );
-  currOrder.multiprint_resume.forEach((col) =>
-    orderLinesSet.add(col.order_line)
-  );
+  prevOrder.printLines.forEach((pol) => orderLinesSet.add(pol.orderLine));
+  currOrder.printLines.forEach((col) => orderLinesSet.add(col.orderLine));
   // merge both order lines ids from col and pol into orderLines array
   const orderLines = Array.from(orderLinesSet).sort((a, b) => a - b);
   let orderPrintLines: (OrderPrintLine | OrderPrintLine[])[] = [];
   for (let i = 0; i < orderLines.length; i++) {
-    const pol = prevOrder.multiprint_resume.find(
-      (o) => o.order_line === orderLines[i]
-    );
-    const col = currOrder.multiprint_resume.find(
-      (o) => o.order_line === orderLines[i]
-    );
+    const pol = prevOrder.printLines.find((o) => o.orderLine === orderLines[i]);
+    const col = currOrder.printLines.find((o) => o.orderLine === orderLines[i]);
     // new order line added
     if (!pol && col) {
       orderPrintLines.push({
         targetPrinter: "test",
         state: State.NEW,
-        orderline: col,
+        printLine: col,
       });
       // order line deleted
     } else if (pol && !col) {
       orderPrintLines.push({
         targetPrinter: "test",
         state: State.CANCELLED,
-        orderline: pol,
+        printLine: pol,
       });
       // order line posibly updated
     } else if (pol && col) {
@@ -83,12 +75,12 @@ const getOrderLineStates = (
           {
             targetPrinter: "test",
             state: State.CANCELLED,
-            orderline: pol,
+            printLine: pol,
           },
           {
             targetPrinter: "test",
             state: State.NEW,
-            orderline: col,
+            printLine: col,
           },
         ]);
       }
@@ -100,13 +92,13 @@ const getOrderLineStates = (
 };
 
 const areDifferent = (
-  prevOrderLine: MultiprintLineExt,
-  currOrderLine: MultiprintLineExt
+  prevOrderLine: PrintLine,
+  currOrderLine: PrintLine
 ): boolean => {
   if (prevOrderLine.qty !== currOrderLine.qty) return true;
   if (prevOrderLine.note !== currOrderLine.note) return true;
   // not sure if this third if statement should be added
-  if (prevOrderLine.product_id !== currOrderLine.product_id) return true;
+  if (prevOrderLine.productId !== currOrderLine.productId) return true;
   return false;
 };
 

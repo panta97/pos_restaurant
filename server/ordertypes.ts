@@ -54,14 +54,23 @@ export interface MultiprintLineExt extends MultiprintLine {
   order_line: number;
 }
 
+export interface PrintLine {
+  qty: number;
+  productName: string;
+  note?: string | null;
+  productId: number;
+  categoryId: number;
+  orderLine: number;
+}
+
 export interface OrderPrintType {
   id: string;
   floor: string;
   table: string;
-  multiprint_resume: MultiprintLineExt[];
+  printLines: PrintLine[];
 }
 
-export interface OrderDbType {
+export interface OrderDb {
   id: string;
   f_floor: string;
   f_table: string;
@@ -69,6 +78,14 @@ export interface OrderDbType {
   qty: number;
   product_id: number;
   note?: string;
+  product_name: string;
+  category_id: number;
+}
+
+export interface ProductDb {
+  id: number;
+  name: string;
+  category_id: number;
 }
 
 export enum State {
@@ -80,7 +97,7 @@ export enum State {
 export interface OrderPrintLine {
   targetPrinter: string;
   state: State;
-  orderline: MultiprintLine;
+  printLine: PrintLine;
 }
 
 export interface OrderToPrint {

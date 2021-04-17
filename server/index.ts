@@ -22,7 +22,7 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.post("/print-order", async (req: Request, res: Response) => {
-  const order = getOrder(req.body.orderId, req.body.orders);
+  const order = await getOrder(req.body.orderId, req.body.orders);
   const orderToPrint = await getOrderToPrint(order);
   printOrder(orderToPrint);
   res.send("Express reponse");

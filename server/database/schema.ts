@@ -6,7 +6,9 @@ const tableOrders = `
     order_line INTEGER NOT NULL,
     qty INTEGER NOT NULL,
     product_id INTEGER NOT NULL,
-    note TEXT NULL
+    note TEXT NULL,
+    product_name VARCHAR NOT NULL,
+    category_id INTEGER NOT NULL
 );`;
 
 const tableProducts = `
