@@ -19,10 +19,23 @@
       ".order-button.select-order.selected"
     );
     const orderId = orderSelected.getAttribute("data-uid");
-    const unpaidOrdersId = Object.keys(localStorage).find((k) =>
-      /openerp_pos_db.+unpaid_orders/.test(k)
+    // filter most recent session key
+    // sessionKey = f40b1cae-ee17-4689-b36c-e7e417af8
+    const sessionKey = Object.keys(localStorage)
+      .filter((k) => {
+        return /openerp_pos_db_.+_pos_session_id/.test(k);
+      })
+      .map((objKey) => ({
+        key: objKey,
+        val: Number(localStorage[objKey]),
+      }))
+      .sort((a, b) => b.val - a.val)[0].key;
+    const [, localStorageUUID] = /openerp_pos_db_(.+)_pos_session_id/.exec(
+      sessionKey
     );
-    const orders = localStorage.getItem(unpaidOrdersId);
+    const orders = localStorage.getItem(
+      `openerp_pos_db_${localStorageUUID}_unpaid_orders`
+    );
     return { orderId, orders };
   };
 
@@ -36,7 +49,7 @@
       ".control-button.order-submit"
     );
     if (orderSubmitBtn) {
-      orderSubmitBtn.addEventListener("click", (e) => {
+      orderSubmitBtn.addEventListener("click", () => {
         sendOrder(getCurrOrder());
       });
       window.clearInterval(intervalId);
