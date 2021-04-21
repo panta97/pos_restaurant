@@ -29,8 +29,8 @@ const getPrintLines = async (order: OrderData): Promise<PrintLine[]> => {
     (val, index, self) => self.indexOf(val) === index
   );
   const productsDb = await getProducts(productIds);
-  const printLines: PrintLine[] = Object.entries(order.multiprint_resume).map(
-    ([key, val]) => {
+  const printLines: PrintLine[] = Object.entries(order.multiprint_resume)
+    .map(([key, val]) => {
       const productDb = productsDb.find((pdb) => pdb.id === val.product_id)!;
       // key could come in this form "1|sin papas"
       const [, orderLine] = /^(\d+).*/.exec(key)!;
@@ -43,8 +43,8 @@ const getPrintLines = async (order: OrderData): Promise<PrintLine[]> => {
         categoryId: productDb.category_id,
         orderLine: Number(orderLine),
       };
-    }
-  );
+    })
+    .sort((a, b) => a.orderLine - b.orderLine);
   return printLines;
 };
 

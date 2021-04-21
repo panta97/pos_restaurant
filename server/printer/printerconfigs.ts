@@ -12,5 +12,5 @@ export const BAR_PRINTER = {
 
 export const RESTAURANT_PRINTER = {
   type: NTP.types.EPSON,
-  interface: "tcp://192.168.0.51",
+  interface: "tcp://192.168.0.45",
 };
