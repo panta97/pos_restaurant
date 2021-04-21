@@ -6,7 +6,7 @@ const getOrder = async (
   orderId: string,
   orders: string
 ): Promise<OrderPrintType> => {
-  // optimize parser for long string ?
+  // TODO: optimize parser for long string
   const ordersObj: OrderType[] = JSON.parse(orders);
   const order = ordersObj.find((odr) => odr.id === orderId)!.data;
   return {

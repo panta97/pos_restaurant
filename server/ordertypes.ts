@@ -93,9 +93,15 @@ export enum State {
   CANCELLED,
 }
 
+// relation target printer with product category
+export enum Printer {
+  BAR = 6784,
+  RESTAURANT = 6783,
+}
+
 // custom print helper types
 export interface OrderPrintLine {
-  targetPrinter: string;
+  targetPrinter: Printer;
   state: State;
   printLine: PrintLine;
 }

@@ -30,7 +30,7 @@ const getOrderToPrint = async (
       floor: order.floor,
       table: order.table,
       printLines: order.printLines.map((mr) => ({
-        targetPrinter: "test",
+        targetPrinter: mr.categoryId,
         state: State.NEW,
         printLine: mr,
       })),
@@ -53,17 +53,18 @@ const getOrderLineStates = (
   for (let i = 0; i < orderLines.length; i++) {
     const pol = prevOrder.printLines.find((o) => o.orderLine === orderLines[i]);
     const col = currOrder.printLines.find((o) => o.orderLine === orderLines[i]);
+
     // new order line added
     if (!pol && col) {
       orderPrintLines.push({
-        targetPrinter: "test",
+        targetPrinter: col.categoryId,
         state: State.NEW,
         printLine: col,
       });
       // order line deleted
     } else if (pol && !col) {
       orderPrintLines.push({
-        targetPrinter: "test",
+        targetPrinter: pol.categoryId,
         state: State.CANCELLED,
         printLine: pol,
       });
@@ -73,12 +74,12 @@ const getOrderLineStates = (
       if (areDifferent(pol, col)) {
         orderPrintLines.push([
           {
-            targetPrinter: "test",
+            targetPrinter: pol.categoryId,
             state: State.CANCELLED,
             printLine: pol,
           },
           {
-            targetPrinter: "test",
+            targetPrinter: col.categoryId,
             state: State.NEW,
             printLine: col,
           },

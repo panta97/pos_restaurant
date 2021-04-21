@@ -1,6 +1,11 @@
+import lodash from "lodash";
 import NTP from "node-thermal-printer";
-import { OrderPrintLine, OrderToPrint, State } from "../ordertypes";
-import { TEST_PRINTER } from "./printerconfigs";
+import { OrderPrintLine, OrderToPrint, Printer, State } from "../ordertypes";
+import {
+  BAR_PRINTER,
+  RESTAURANT_PRINTER,
+  TEST_PRINTER,
+} from "./printerconfigs";
 
 const printText = (text: string) => {
   const printer = new NTP.printer(TEST_PRINTER);
@@ -56,11 +61,18 @@ const printOrderLine = (
   }
 };
 
-const printOrder = (orderToPrint: OrderToPrint) => {
-  //  state hasn't changed
+const printOrderLines = (printerType: Printer, orderToPrint: OrderToPrint) => {
+  //  no order lines to print
   if (orderToPrint.printLines.length === 0) return;
-
-  const printer = new NTP.printer(TEST_PRINTER);
+  let printer: NTP.printer;
+  switch (printerType) {
+    case Printer.BAR:
+      printer = new NTP.printer(BAR_PRINTER);
+      break;
+    case Printer.RESTAURANT:
+      printer = new NTP.printer(RESTAURANT_PRINTER);
+      break;
+  }
   orderToPrint.printLines.forEach((orderPrintLine) => {
     printHeader(printer, orderToPrint);
     // it is a bundle order [C, N]
@@ -77,6 +89,32 @@ const printOrder = (orderToPrint: OrderToPrint) => {
     printer.cut();
   });
   printer.execute();
+};
+
+const filterOrderLines = (
+  targetPrinter: Printer,
+  orderToPrint: OrderToPrint
+) => {
+  const newOrderToPrint = lodash.cloneDeep(orderToPrint);
+  newOrderToPrint.printLines = newOrderToPrint.printLines.filter(
+    (orderPrintLine) => {
+      if (Array.isArray(orderPrintLine)) {
+        return orderPrintLine[0].targetPrinter === targetPrinter;
+      } else {
+        return orderPrintLine.targetPrinter === targetPrinter;
+      }
+    }
+  );
+  return newOrderToPrint;
+};
+
+const printOrder = (orderToPrint: OrderToPrint) => {
+  //  order state hasn't changed
+  if (orderToPrint.printLines.length === 0) return;
+  const restOrder = filterOrderLines(Printer.RESTAURANT, orderToPrint);
+  const barOrder = filterOrderLines(Printer.BAR, orderToPrint);
+  printOrderLines(Printer.RESTAURANT, restOrder);
+  printOrderLines(Printer.BAR, barOrder);
 };
 
 export { printText, printOrder };
