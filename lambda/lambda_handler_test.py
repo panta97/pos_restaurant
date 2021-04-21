@@ -1,4 +1,5 @@
 import os
+import csv
 from xmlrpc import client as xmlrpclib
 
 
@@ -30,3 +31,22 @@ def lambda_handler(event, context):
 
     products = [flatten(product) for product in product_product]
     return products
+
+
+def make_csv(dict_list):
+    if len(dict_list) == 0:
+        return
+    columns = dict_list[0].keys()
+    try:
+        with open("products.csv", "w") as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=columns)
+            writer.writeheader()
+            for data in dict_list:
+                writer.writerow(data)
+    except IOError:
+        print("IOError")
+    pass
+
+
+# lambda_handler(None, None)
+make_csv(lambda_handler(None, None))
