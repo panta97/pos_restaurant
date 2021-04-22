@@ -2,7 +2,7 @@
 import fs from "fs";
 import { open } from "sqlite";
 import sqlite3 from "sqlite3";
-import { OrderDb, OrderPrintType, ProductDb } from "../ordertypes";
+import { OrderDb, OrderPrintType, ProductDb, RestProduct } from "../ordertypes";
 import { tableOrders, tableProducts } from "./schema";
 
 const getDatabasePath = (): string => {
@@ -92,4 +92,33 @@ const getProducts = async (productIds: number[]) => {
   return products;
 };
 
-export { bootstrapDB, saveOrder, getOrder, deleteOrder, getProducts };
+const saveProducts = async (products: RestProduct[]) => {
+  const db = await openDB();
+  // delete all previous products
+  await db.run(`delete from products`);
+  // insert updated product catalog
+  await Promise.all(
+    products.map(async (product) => {
+      await db.run(
+        `insert into products
+        (id, name, category_id)
+        values
+        (:id, :name, :category_id)`,
+        {
+          ":id": product.id,
+          ":name": product.name,
+          ":category_id": product.category_id,
+        }
+      );
+    })
+  );
+};
+
+export {
+  bootstrapDB,
+  saveOrder,
+  getOrder,
+  deleteOrder,
+  getProducts,
+  saveProducts,
+};

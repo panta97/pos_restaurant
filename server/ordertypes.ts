@@ -1,3 +1,4 @@
+/* ------------------ odoo pos types ------------------ */
 // post restaurant unpaid order types
 export interface OrderType {
   id: string;
@@ -111,4 +112,11 @@ export interface OrderToPrint {
   floor: string;
   table: string;
   printLines: (OrderPrintLine | OrderPrintLine[])[];
+}
+
+// product rest type
+export interface RestProduct {
+  id: number;
+  name: string;
+  category_id: number;
 }

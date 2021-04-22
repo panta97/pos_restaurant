@@ -1,9 +1,10 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { Request, Response } from "express";
-import { bootstrapDB } from "./database/db";
+import { bootstrapDB, saveProducts } from "./database/db";
 import { getOrder } from "./order";
 import { printOrder } from "./printer/printer";
+import { getProducts } from "./rest";
 import { getOrderToPrint } from "./state";
 
 // set up enviroment variables
@@ -18,7 +19,7 @@ app.use(express.urlencoded());
 app.use(express.json());
 
 app.get("/", (req: Request, res: Response) => {
-  res.send("Express + TypeScript Server");
+  res.send("printer server is up and running ...");
 });
 
 app.post("/print-order", async (req: Request, res: Response) => {
@@ -26,6 +27,13 @@ app.post("/print-order", async (req: Request, res: Response) => {
   const orderToPrint = await getOrderToPrint(order);
   printOrder(orderToPrint);
   res.send("Express reponse");
+});
+
+app.post("/update-products", async (req: Request, res: Response) => {
+  // TODO: check if response is a valid code 200
+  const products = await getProducts();
+  await saveProducts(products);
+  res.send("product catalog updated");
 });
 
 app.listen(PORT, () => {
