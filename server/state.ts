@@ -53,7 +53,6 @@ const getOrderLineStates = (
   for (let i = 0; i < orderLines.length; i++) {
     const pol = prevOrder.printLines.find((o) => o.orderLine === orderLines[i]);
     const col = currOrder.printLines.find((o) => o.orderLine === orderLines[i]);
-
     // new order line added
     if (!pol && col) {
       orderPrintLines.push({
@@ -87,7 +86,7 @@ const getOrderLineStates = (
       }
     }
   }
-  // example return
+  // return example
   // [N, C, [N, C]]
   return orderPrintLines;
 };

@@ -1,5 +1,6 @@
 import { getProducts } from "./database/db";
 import { OrderData, OrderPrintType, OrderType, PrintLine } from "./ordertypes";
+import { getCurrentTime } from "./utils";
 
 // tranform order from request
 const getOrder = async (
@@ -14,6 +15,8 @@ const getOrder = async (
     floor: order.floor,
     table: order.table,
     printLines: await getPrintLines(order),
+    posSessionId: order.pos_session_id,
+    createdAt: getCurrentTime(),
   };
 };
 

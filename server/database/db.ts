@@ -33,9 +33,11 @@ const saveOrder = async (order: OrderPrintType) => {
     order.printLines.map(async (pl) => {
       await db.run(
         `insert into orders
-        (id, f_floor, f_table, order_line, qty, product_id, note, product_name, category_id)
+        (id, f_floor, f_table, order_line, qty, product_id, note, product_name,
+          category_id, created_at, pos_session_id)
         values
-        (:id, :f_floor, :f_table, :order_line, :qty, :product_id, :note, :product_name, :category_id)`,
+        (:id, :f_floor, :f_table, :order_line, :qty, :product_id, :note, :product_name,
+          :category_id, :created_at, :pos_session_id)`,
         {
           ":id": order.id,
           ":f_floor": order.floor,
@@ -46,6 +48,8 @@ const saveOrder = async (order: OrderPrintType) => {
           ":note": pl.note,
           ":product_name": pl.productName,
           ":category_id": pl.categoryId,
+          ":created_at": order.createdAt,
+          ":pos_session_id": order.posSessionId,
         }
       );
     })
@@ -73,6 +77,8 @@ const getOrder = async (orderId: string): Promise<OrderPrintType | boolean> => {
       productName: o.product_name,
       categoryId: o.category_id,
     })),
+    createdAt: order[0].created_at,
+    posSessionId: order[0].pos_session_id,
   };
 };
 

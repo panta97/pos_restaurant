@@ -69,6 +69,8 @@ export interface OrderPrintType {
   floor: string;
   table: string;
   printLines: PrintLine[];
+  createdAt: string;
+  posSessionId: number;
 }
 
 export interface OrderDb {
@@ -81,6 +83,8 @@ export interface OrderDb {
   note?: string;
   product_name: string;
   category_id: number;
+  created_at: string;
+  pos_session_id: number;
 }
 
 export interface ProductDb {
@@ -96,8 +100,8 @@ export enum State {
 
 // relation target printer with product category
 export enum Printer {
-  BAR = 6784,
-  RESTAURANT = 6783,
+  BAR = 6723,
+  RESTAURANT = 6722,
 }
 
 // custom print helper types
