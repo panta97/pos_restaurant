@@ -7,8 +7,12 @@ const getProducts = async (): Promise<RestProduct[]> => {
     headers: { "x-api-key": process.env.API_KEY! },
     redirect: "follow",
   });
-  const products: RestProduct[] = await response.json();
-  return products;
+  if (response.status === 200) {
+    const products: RestProduct[] = await response.json();
+    return products;
+  } else {
+    throw new Error("Couln't update products catalog");
+  }
 };
 
 export { getProducts };

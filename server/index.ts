@@ -38,10 +38,17 @@ app.post("/print-order", async (req: Request, res: Response) => {
 });
 
 app.post("/update-products", async (req: Request, res: Response) => {
-  // TODO: check if response is a valid code 200
-  const products = await getProducts();
-  await saveProducts(products);
-  res.send("product catalog updated");
+  const response = { msj: "" };
+  try {
+    const products = await getProducts();
+    await saveProducts(products);
+    res.status(200);
+    response.msj = "Products catalog successfully updated";
+  } catch (err) {
+    res.status(500);
+    response.msj = err.message;
+  }
+  res.json(response);
 });
 
 app.listen(PORT, () => {

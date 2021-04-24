@@ -99,6 +99,9 @@ const getProducts = async (productIds: number[]) => {
 };
 
 const saveProducts = async (products: RestProduct[]) => {
+  // just in case products list is empty
+  // keep working with latest products catalog
+  if (products.length === 0) return;
   const db = await openDB();
   // delete all previous products
   await db.run(`delete from products`);
