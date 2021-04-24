@@ -23,10 +23,18 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.post("/print-order", async (req: Request, res: Response) => {
-  const order = await getOrder(req.body.orderId, req.body.orders);
-  const orderToPrint = await getOrderToPrint(order);
-  printOrder(orderToPrint);
-  res.send("Express reponse");
+  const response = { msj: "" };
+  try {
+    const order = await getOrder(req.body.orderId, req.body.orders);
+    const orderToPrint = await getOrderToPrint(order);
+    await printOrder(orderToPrint);
+    res.status(200);
+    response.msj = "Printed successfully";
+  } catch (err) {
+    res.status(500);
+    response.msj = err.message;
+  }
+  res.json(response);
 });
 
 app.post("/update-products", async (req: Request, res: Response) => {

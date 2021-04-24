@@ -55,4 +55,9 @@
       window.clearInterval(intervalId);
     }
   }, 500);
+
+  // add listener to background extension
+  chrome.runtime.onMessage.addListener((response) => {
+    if (response.statusCode === 500) window.alert(response.msj);
+  });
 })();

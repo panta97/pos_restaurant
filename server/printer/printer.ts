@@ -1,6 +1,13 @@
 import lodash from "lodash";
 import NTP from "node-thermal-printer";
-import { OrderPrintLine, OrderToPrint, Printer, State } from "../ordertypes";
+import { printerErrorHandler } from "../error";
+import {
+  OrderPrintLine,
+  OrderToPrint,
+  Printer,
+  PrintResult,
+  State,
+} from "../ordertypes";
 import {
   BAR_PRINTER,
   RESTAURANT_PRINTER,
@@ -61,7 +68,10 @@ const printOrderLine = (
   }
 };
 
-const printOrderLines = (printerType: Printer, orderToPrint: OrderToPrint) => {
+const printOrderLines = async (
+  printerType: Printer,
+  orderToPrint: OrderToPrint
+): Promise<String | undefined> => {
   //  no order lines to print
   if (orderToPrint.printLines.length === 0) return;
   let printer: NTP.printer;
@@ -88,7 +98,7 @@ const printOrderLines = (printerType: Printer, orderToPrint: OrderToPrint) => {
     }
     printer.cut();
   });
-  printer.execute();
+  return printer.execute();
 };
 
 const filterOrderLines = (
@@ -108,13 +118,24 @@ const filterOrderLines = (
   return newOrderToPrint;
 };
 
-const printOrder = (orderToPrint: OrderToPrint) => {
-  //  order state hasn't changed
+const printOrder = async (orderToPrint: OrderToPrint) => {
+  const printers = [Printer.RESTAURANT, Printer.BAR];
+  //  return if order state hasn't changed
   if (orderToPrint.printLines.length === 0) return;
-  const restOrder = filterOrderLines(Printer.RESTAURANT, orderToPrint);
-  const barOrder = filterOrderLines(Printer.BAR, orderToPrint);
-  printOrderLines(Printer.RESTAURANT, restOrder);
-  printOrderLines(Printer.BAR, barOrder);
+  // if there are no order lines to print
+  // it will return {status: 'fulfilled', value: undefined}
+  const promiseResults = await Promise.allSettled(
+    printers.map((printer) => {
+      const order = filterOrderLines(printer, orderToPrint);
+      return printOrderLines(printer, order);
+    })
+  );
+  const printResults: PrintResult[] = printers.map((printer, i) => ({
+    printer: printer,
+    promiseResult: promiseResults[i],
+  }));
+  printerErrorHandler(printResults, orderToPrint);
+  console.log(printResults);
 };
 
 export { printText, printOrder };

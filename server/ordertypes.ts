@@ -124,3 +124,9 @@ export interface RestProduct {
   name: string;
   category_id: number;
 }
+
+// error types
+export interface PrintResult {
+  promiseResult: PromiseSettledResult<String | undefined>;
+  printer: Printer;
+}
