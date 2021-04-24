@@ -100,8 +100,8 @@ export enum State {
 
 // relation target printer with product category
 export enum Printer {
-  BAR = 6723,
-  RESTAURANT = 6722,
+  BAR = Number(process.env.CAT_ID_BAR!),
+  RESTAURANT = Number(process.env.CAT_ID_REST!),
 }
 
 // custom print helper types

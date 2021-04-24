@@ -98,7 +98,7 @@ const printOrderLines = async (
     }
     printer.cut();
   });
-  return printer.execute();
+  return printer!.execute();
 };
 
 const filterOrderLines = (
@@ -135,7 +135,6 @@ const printOrder = async (orderToPrint: OrderToPrint) => {
     promiseResult: promiseResults[i],
   }));
   printerErrorHandler(printResults, orderToPrint);
-  console.log(printResults);
 };
 
 export { printText, printOrder };

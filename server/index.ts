@@ -1,19 +1,19 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { Request, Response } from "express";
+// set up enviroment variables
+dotenv.config();
 import { bootstrapDB, saveProducts } from "./database/db";
 import { getOrder } from "./order";
 import { printOrder } from "./printer/printer";
 import { getProducts } from "./rest";
 import { getOrderToPrint } from "./state";
 
-// set up enviroment variables
-dotenv.config();
 // init db
 bootstrapDB();
 // config express
 const app = express();
-const PORT = 8000;
+const PORT = Number(process.env.SERVER_PORT!);
 app.use(cors());
 app.use(express.urlencoded());
 app.use(express.json());

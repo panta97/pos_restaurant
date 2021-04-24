@@ -1,6 +1,6 @@
 import NTP from "node-thermal-printer";
 
-const timeout = 500;
+const timeout = Number(process.env.PRINTER_TIMEOUT!);
 
 export const TEST_PRINTER = {
   type: NTP.types.EPSON,
@@ -12,7 +12,7 @@ export const TEST_PRINTER = {
 
 export const BAR_PRINTER = {
   type: NTP.types.EPSON,
-  interface: "tcp://192.168.0.45",
+  interface: `tcp://${process.env.PRINTER_IP_BAR!}`,
   options: {
     timeout,
   },
@@ -20,7 +20,7 @@ export const BAR_PRINTER = {
 
 export const RESTAURANT_PRINTER = {
   type: NTP.types.EPSON,
-  interface: "tcp://192.168.0.44",
+  interface: `tcp://${process.env.PRINTER_IP_REST!}`,
   options: {
     timeout,
   },
