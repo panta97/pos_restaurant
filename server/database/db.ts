@@ -5,16 +5,9 @@ import sqlite3 from "sqlite3";
 import { OrderDb, OrderPrintType, ProductDb, RestProduct } from "../ordertypes";
 import { tableOrders, tableProducts } from "./schema";
 
-const getDatabasePath = (): string => {
-  return process.env.NODE_ENV === "production"
-    ? "server/build/database/orderdb.sqlite"
-    : "database/orderdb.sqlite";
-};
-
 const bootstrapDB = () => {
-  const dbFile = getDatabasePath();
-  if (!fs.existsSync(dbFile)) {
-    const db = new sqlite3.Database(dbFile);
+  if (!fs.existsSync(process.env.DB_PATH!)) {
+    const db = new sqlite3.Database(process.env.DB_PATH!);
     db.run(tableOrders);
     db.run(tableProducts);
   }
@@ -22,7 +15,7 @@ const bootstrapDB = () => {
 
 const openDB = async () => {
   return await open({
-    filename: getDatabasePath(),
+    filename: process.env.DB_PATH!,
     driver: sqlite3.Database,
   });
 };
