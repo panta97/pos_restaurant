@@ -12,11 +12,16 @@ if [ ! -f '.env' ]; then
     exit
 fi
 
+# TODO: TARGET_FOLDER is hardcoded
 TARGET_FOLDER="/d/POS_SERVER"
 # remove from previous build
 rm -rf $TARGET_FOLDER
 
-# copy contents of build and env file to target folder
-# TODO: hardcoded
+# copy contents of build ,env file and package.json file to target folder
 cp -a ./build/. $TARGET_FOLDER
 cp .env "$TARGET_FOLDER/.env"
+cp package.json "$TARGET_FOLDER/package.json"
+
+# install dependencies
+cd $TARGET_FOLDER
+yarn install --production=true
