@@ -22,7 +22,7 @@
 
 **Agregar argumentos** index.js
 
-**Iniciar en** D:\POS_SERVER
+**Iniciar en** D:\POS_SERVER\
 
 ### Finish
 
