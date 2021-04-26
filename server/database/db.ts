@@ -104,9 +104,10 @@ const getAllOrders = async (): Promise<RestOrder[]> => {
       from orders
       limit 1
     )
+    and state = ?
     order by created_at desc;
   `;
-  const orders: OrderDb[] = await db.all(query);
+  const orders: OrderDb[] = await db.all(query, [OrderState.CURRENT]);
   const restOrders: RestOrder[] = [];
   let prevOrderId = "";
   for (let i = 0; i < orders.length; i++) {
