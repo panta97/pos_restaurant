@@ -1,35 +1,42 @@
-import { deleteOrder, getOrder, saveOrder } from "./database/db";
+import {
+  deleteOrder,
+  getOrder,
+  saveOrder,
+  updateOrderState,
+} from "./database/db";
 import {
   OrderPrintLine,
   OrderPrintType,
   OrderToPrint,
   PrintLine,
   OrderDiffState,
+  OrderState,
 } from "./ordertypes";
 
 const getOrderToPrint = async (
-  order: OrderPrintType
+  currOrder: OrderPrintType
 ): Promise<OrderToPrint> => {
-  const prevOrder = await getOrder(order.id);
+  // we get the CURRENT order here as PREVIOUS order
+  // since the most current order is coming from func parameter
+  const prevOrder = await getOrder(currOrder.id, OrderState.CURRENT);
   // previous order exists
   if (prevOrder) {
-    // simply delete it all and insert it again
-    await deleteOrder(order.id);
-    await saveOrder(order);
+    await updateOrderState(currOrder.id);
+    await saveOrder(currOrder);
     return {
-      id: order.id,
-      floor: order.floor,
-      table: order.table,
-      printLines: getOrderLineStates(prevOrder as OrderPrintType, order),
+      id: currOrder.id,
+      floor: currOrder.floor,
+      table: currOrder.table,
+      printLines: getOrderLineStates(prevOrder as OrderPrintType, currOrder),
     };
     // previous order does not exist
   } else {
-    await saveOrder(order);
+    await saveOrder(currOrder);
     return {
-      id: order.id,
-      floor: order.floor,
-      table: order.table,
-      printLines: order.printLines.map((mr) => ({
+      id: currOrder.id,
+      floor: currOrder.floor,
+      table: currOrder.table,
+      printLines: currOrder.printLines.map((mr) => ({
         targetPrinter: mr.categoryId,
         state: OrderDiffState.NEW,
         printLine: mr,

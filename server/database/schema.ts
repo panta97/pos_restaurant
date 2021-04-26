@@ -10,7 +10,8 @@ const tableOrders = `
     product_name VARCHAR NOT NULL,
     category_id INTEGER NOT NULL,
     created_at TEXT NOT NULL,
-    pos_session_id INTEGER NOT NULL
+    pos_session_id INTEGER NOT NULL,
+    state INTEGER NOT NULL
 );`;
 
 const tableProducts = `

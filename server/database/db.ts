@@ -2,7 +2,14 @@
 import fs from "fs";
 import { open } from "sqlite";
 import sqlite3 from "sqlite3";
-import { OrderDb, OrderPrintType, ProductDb, RestProduct } from "../ordertypes";
+import { productCatalogErrorHandler } from "../error";
+import {
+  OrderDb,
+  OrderPrintType,
+  OrderState,
+  ProductDb,
+  RestProduct,
+} from "../ordertypes";
 import { Order as RestOrder } from "../resttypes";
 import { tableOrders, tableProducts } from "./schema";
 
@@ -28,10 +35,10 @@ const saveOrder = async (order: OrderPrintType) => {
       await db.run(
         `insert into orders
         (id, f_floor, f_table, order_line, qty, product_id, note, product_name,
-          category_id, created_at, pos_session_id)
+          category_id, created_at, pos_session_id, state)
         values
         (:id, :f_floor, :f_table, :order_line, :qty, :product_id, :note, :product_name,
-          :category_id, :created_at, :pos_session_id)`,
+          :category_id, :created_at, :pos_session_id, :state)`,
         {
           ":id": order.id,
           ":f_floor": order.floor,
@@ -44,20 +51,28 @@ const saveOrder = async (order: OrderPrintType) => {
           ":category_id": pl.categoryId,
           ":created_at": order.createdAt,
           ":pos_session_id": order.posSessionId,
+          ":state": OrderState.CURRENT,
         }
       );
     })
   );
 };
 
-const getOrder = async (orderId: string): Promise<OrderPrintType | boolean> => {
+const getOrder = async (
+  orderId: string,
+  orderState: OrderState
+): Promise<OrderPrintType | boolean> => {
   const db = await openDB();
   const query = `
-  select id, f_floor, f_table, order_line, qty, product_id, note, product_name, category_id
+  select id, f_floor, f_table, order_line, qty, product_id, note, product_name,
+         category_id
   from orders
-  where id = ?
+  where id = :id and state = :state
   `;
-  const order: OrderDb[] = await db.all(query, [orderId]);
+  const order: OrderDb[] = await db.all(query, {
+    ":id": orderId,
+    ":state": orderState,
+  });
   if (order.length === 0) return false;
   return {
     id: order[0].id,
@@ -130,6 +145,29 @@ const deleteOrder = async (orderId: string) => {
   await db.run(`delete from orders where id = :id`, { ":id": orderId });
 };
 
+const updateOrderState = async (orderId: string) => {
+  const db = await openDB();
+  // increase by 1 to all order lines
+  /*
+  order   state
+  o1 first    0   current order
+  ------------------------------
+  o1 second   0   current order
+  o1 first    1   prev order
+  ------------------------------
+  o1 thrid    0   current order
+  o1 second   1   prev order
+  o1 first    2   delete
+  */
+  const query = `
+    update orders
+    set state = state + 1
+    where id = ?;
+  `;
+  // TODO: research how this would fail
+  await db.run(query, [orderId]);
+};
+
 const getProducts = async (productIds: number[]) => {
   const db = await openDB();
   const query = `
@@ -138,6 +176,7 @@ const getProducts = async (productIds: number[]) => {
     where id in (${productIds.join(",")})
   `;
   const products: ProductDb[] = await db.all(query);
+  productCatalogErrorHandler(productIds, products);
   return products;
 };
 
@@ -182,6 +221,7 @@ export {
   getOrder,
   getAllOrders,
   deleteOrder,
+  updateOrderState,
   getProducts,
   getAllProducts,
   saveProducts,

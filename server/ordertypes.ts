@@ -130,3 +130,8 @@ export interface PrintResult {
   promiseResult: PromiseSettledResult<String | undefined>;
   printer: Printer;
 }
+
+export enum OrderState {
+  CURRENT = 0,
+  PREVIOUS = 1,
+}
