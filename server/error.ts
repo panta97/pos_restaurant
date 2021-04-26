@@ -4,6 +4,21 @@ const printerErrorHandler = (
   printResults: PrintResult[],
   orderToPrint: OrderToPrint
 ) => {
+  // handle error mismatch between category id
+  const allUndefined = printResults.every(
+    (pr) =>
+      pr.promiseResult.status === "fulfilled" &&
+      pr.promiseResult.value === undefined
+  );
+  if (allUndefined) {
+    let errorMsg = "CRITICAL ERROR !!!\n";
+    errorMsg += "Nothing got printed, maybe there is a mismatch\n";
+    errorMsg += "between print type category id and table products\n";
+    errorMsg += "check env variables CAT_ID_BAR and CAT_ID_REST\n";
+    errorMsg += "and sqlite table products\n";
+    throw new Error(errorMsg);
+  }
+  // handle error when could not connect with printer
   printResults = printResults.filter(
     (pr) => pr.promiseResult.status === "rejected"
   );
