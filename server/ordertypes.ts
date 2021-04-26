@@ -93,7 +93,7 @@ export interface ProductDb {
   category_id: number;
 }
 
-export enum State {
+export enum OrderDiffState {
   NEW,
   CANCELLED,
 }
@@ -107,7 +107,7 @@ export enum Printer {
 // custom print helper types
 export interface OrderPrintLine {
   targetPrinter: Printer;
-  state: State;
+  state: OrderDiffState;
   printLine: PrintLine;
 }
 

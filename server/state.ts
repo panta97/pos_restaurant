@@ -4,7 +4,7 @@ import {
   OrderPrintType,
   OrderToPrint,
   PrintLine,
-  State,
+  OrderDiffState,
 } from "./ordertypes";
 
 const getOrderToPrint = async (
@@ -31,7 +31,7 @@ const getOrderToPrint = async (
       table: order.table,
       printLines: order.printLines.map((mr) => ({
         targetPrinter: mr.categoryId,
-        state: State.NEW,
+        state: OrderDiffState.NEW,
         printLine: mr,
       })),
     };
@@ -57,14 +57,14 @@ const getOrderLineStates = (
     if (!pol && col) {
       orderPrintLines.push({
         targetPrinter: col.categoryId,
-        state: State.NEW,
+        state: OrderDiffState.NEW,
         printLine: col,
       });
       // order line deleted
     } else if (pol && !col) {
       orderPrintLines.push({
         targetPrinter: pol.categoryId,
-        state: State.CANCELLED,
+        state: OrderDiffState.CANCELLED,
         printLine: pol,
       });
       // order line posibly updated
@@ -74,12 +74,12 @@ const getOrderLineStates = (
         orderPrintLines.push([
           {
             targetPrinter: pol.categoryId,
-            state: State.CANCELLED,
+            state: OrderDiffState.CANCELLED,
             printLine: pol,
           },
           {
             targetPrinter: col.categoryId,
-            state: State.NEW,
+            state: OrderDiffState.NEW,
             printLine: col,
           },
         ]);

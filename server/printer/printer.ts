@@ -6,7 +6,7 @@ import {
   OrderToPrint,
   Printer,
   PrintResult,
-  State,
+  OrderDiffState,
 } from "../ordertypes";
 import {
   BAR_PRINTER,
@@ -52,7 +52,7 @@ const printOrderLine = (
   orderPrintLine: OrderPrintLine
 ) => {
   printer.table([
-    `${orderPrintLine.state === State.NEW ? "NUEVO" : "CANCELADO"}`,
+    `${orderPrintLine.state === OrderDiffState.NEW ? "NUEVO" : "CANCELADO"}`,
     new Date().toLocaleTimeString(),
   ]);
   printer.table([
