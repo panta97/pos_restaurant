@@ -1,14 +1,14 @@
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
-import OrdersList from './components/order/OrdersList';
-import ProductsList from './components/product/ProductsList';
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import OrderList from "./components/order/OrderList";
+import ProductList from "./components/product/ProductList";
 
 function App() {
   return (
     <Router>
-      <div>
+      <div className="text-gray-800">
         <Switch>
-          <Route path="/" exact component={OrdersList} />
-          <Route path="/products" component={ProductsList} />
+          <Route path="/" exact component={OrderList} />
+          <Route path="/products" component={ProductList} />
         </Switch>
       </div>
     </Router>

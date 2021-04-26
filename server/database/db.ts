@@ -3,6 +3,7 @@ import fs from "fs";
 import { open } from "sqlite";
 import sqlite3 from "sqlite3";
 import { OrderDb, OrderPrintType, ProductDb, RestProduct } from "../ordertypes";
+import { Order as RestOrder } from "../resttypes";
 import { tableOrders, tableProducts } from "./schema";
 
 const bootstrapDB = () => {
@@ -75,6 +76,54 @@ const getOrder = async (orderId: string): Promise<OrderPrintType | boolean> => {
   };
 };
 
+// get all orders of current pos session id
+const getAllOrders = async (): Promise<RestOrder[]> => {
+  const db = await openDB();
+  const query = `
+    select id, f_floor, f_table, order_line, qty, product_id, note, product_name,
+    category_id, created_at, pos_session_id
+    from orders
+    where pos_session_id  =
+    (
+      select max(pos_session_id)
+      from orders
+      limit 1
+    );
+  `;
+  const orders: OrderDb[] = await db.all(query);
+  const restOrders: RestOrder[] = [];
+  let prevOrderId = "";
+  for (let i = 0; i < orders.length; i++) {
+    if (prevOrderId !== orders[i].id) {
+      restOrders.push({
+        id: orders[i].id,
+        floor: orders[i].f_floor,
+        table: orders[i].f_table,
+        createAt: orders[i].created_at,
+        orderLines: [
+          {
+            orderLineId: orders[i].order_line,
+            categoryId: orders[i].category_id,
+            productName: orders[i].product_name,
+            qty: orders[i].qty,
+            note: orders[i].note,
+          },
+        ],
+      });
+    } else {
+      restOrders[restOrders.length - 1].orderLines.push({
+        orderLineId: orders[i].order_line,
+        categoryId: orders[i].category_id,
+        productName: orders[i].product_name,
+        qty: orders[i].qty,
+        note: orders[i].note,
+      });
+    }
+    prevOrderId = orders[i].id;
+  }
+  return restOrders;
+};
+
 const deleteOrder = async (orderId: string) => {
   const db = await openDB();
   await db.run(`delete from orders where id = :id`, { ":id": orderId });
@@ -130,6 +179,7 @@ export {
   bootstrapDB,
   saveOrder,
   getOrder,
+  getAllOrders,
   deleteOrder,
   getProducts,
   getAllProducts,
