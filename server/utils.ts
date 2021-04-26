@@ -14,4 +14,21 @@ const getCurrentTime = () => {
   return toSqlTime(new Date());
 };
 
-export { getCurrentTime };
+const snakeToCamel = (str: string) => {
+  return str.replace(/([-_]\w)/g, (g) => g[1].toUpperCase());
+};
+
+// @ts-ignore
+const toCamelCase = (array) => {
+  // @ts-ignore
+  return array.map((obj) => {
+    let auxObj = {};
+    Object.entries(obj).map(([key, val]) => {
+      // @ts-ignore
+      auxObj[snakeToCamel(key)] = val;
+    });
+    return auxObj;
+  });
+};
+
+export { getCurrentTime, toCamelCase };

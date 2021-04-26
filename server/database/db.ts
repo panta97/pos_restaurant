@@ -91,6 +91,16 @@ const getProducts = async (productIds: number[]) => {
   return products;
 };
 
+const getAllProducts = async () => {
+  const db = await openDB();
+  const query = `
+    select id, name, category_id
+    from products;
+  `;
+  const products: ProductDb[] = await db.all(query);
+  return products;
+};
+
 const saveProducts = async (products: RestProduct[]) => {
   // just in case products list is empty
   // keep working with latest products catalog
@@ -122,5 +132,6 @@ export {
   getOrder,
   deleteOrder,
   getProducts,
+  getAllProducts,
   saveProducts,
 };

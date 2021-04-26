@@ -3,11 +3,12 @@ import dotenv from "dotenv";
 import express, { Request, Response } from "express";
 // set up enviroment variables
 dotenv.config();
-import { bootstrapDB, saveProducts } from "./database/db";
+import { bootstrapDB, getAllProducts, saveProducts } from "./database/db";
 import { getOrder } from "./order";
 import { printOrder } from "./printer/printer";
 import { getProducts } from "./rest";
 import { getOrderToPrint } from "./state";
+import { toCamelCase } from "./utils";
 
 // init db
 bootstrapDB();
@@ -49,6 +50,19 @@ app.post("/update-products", async (req: Request, res: Response) => {
     response.msj = err.message;
   }
   res.json(response);
+});
+
+app.get("/list-products", async(req: Request, res: Response) => {
+
+  try {
+    const products = await getAllProducts();
+    res.status(200);
+    res.json(toCamelCase(products));
+  } catch (err) {
+    res.status(500);
+    const response = { msj: err.message };
+    res.json(response);
+  }
 });
 
 app.listen(PORT, () => {
