@@ -1,4 +1,4 @@
-import { OrderToPrint, Printer, PrintResult } from "./ordertypes";
+import { OrderToPrint, Printer, PrintResult, ProductDb } from "./ordertypes";
 
 const printerErrorHandler = (
   printResults: PrintResult[],
@@ -39,4 +39,18 @@ const printerErrorHandler = (
   throw new Error(errorMsg);
 };
 
-export { printerErrorHandler };
+const productCatalogErrorHandler = (
+  productIds: number[],
+  products: ProductDb[]
+) => {
+  if (products.length === productIds.length) return;
+  let errorMsg = "CRITICAL ERROR !!!\n";
+  errorMsg += "Could not retrieve all or some products from product catalog\n";
+  errorMsg += "this could happen for two reasons\n";
+  errorMsg += "first table products is empty\n";
+  errorMsg += "or second table products is outdated\n";
+  errorMsg += "so for both cases call update-products POS endpoint";
+  throw new Error(errorMsg);
+};
+
+export { printerErrorHandler, productCatalogErrorHandler };
