@@ -88,7 +88,8 @@ const getAllOrders = async (): Promise<RestOrder[]> => {
       select max(pos_session_id)
       from orders
       limit 1
-    );
+    )
+    order by created_at desc;
   `;
   const orders: OrderDb[] = await db.all(query);
   const restOrders: RestOrder[] = [];

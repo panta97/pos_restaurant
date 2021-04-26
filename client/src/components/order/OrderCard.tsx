@@ -1,5 +1,5 @@
-import React from "react";
 import { Category, Order } from "../../types";
+import timeDifference from "../../utils";
 import OrderLines from "./OrderLines";
 
 interface OrderCardProps {
@@ -20,7 +20,9 @@ const OrderCard = ({ order }: OrderCardProps) => {
         <p> Piso: {order.floor}</p>
         <p>{order.table}</p>
       </div>
-      <div className="text-sm">{order.createAt}</div>
+      <div className="text-sm">
+        {timeDifference(new Date(order.createAt).getTime(), "es-PE")}
+      </div>
       <div className="border border-dashed"></div>
       {<OrderLines lines={order.orderLines} category={Category.RESTAURANT} />}
       {<OrderLines lines={order.orderLines} category={Category.BAR} />}
