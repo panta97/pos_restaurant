@@ -7,7 +7,7 @@ import { bootstrapDB, getAllOrders, getAllProducts, saveProducts } from "./datab
 import { getOrder } from "./order";
 import { printOrder } from "./printer/printer";
 import { getProducts } from "./rest";
-import { getOrderToPrint } from "./state";
+import { getOrderToPrint, getOrderToPrintBackUp } from "./state";
 import { toCamelCase } from "./utils";
 import  path from "path";
 
@@ -30,6 +30,20 @@ app.post("/print-order", async (req: Request, res: Response) => {
   try {
     const order = await getOrder(req.body.orderId, req.body.orders);
     const orderToPrint = await getOrderToPrint(order);
+    await printOrder(orderToPrint);
+    res.status(200);
+    response.msj = "Printed successfully";
+  } catch (err) {
+    res.status(500);
+    response.msj = err.message;
+  }
+  res.json(response);
+});
+
+app.post("/print-order-specific", async (req: Request, res: Response) => {
+  const response = { msj: "" };
+  try {
+    const orderToPrint = await getOrderToPrintBackUp(req.body.orderId);
     await printOrder(orderToPrint);
     res.status(200);
     response.msj = "Printed successfully";

@@ -45,6 +45,37 @@ const getOrderToPrint = async (
   }
 };
 
+const getOrderToPrintBackUp = async (
+  orderId: string
+): Promise<OrderToPrint> => {
+  const prevOrder = await getOrder(orderId, OrderState.PREVIOUS);
+  const currOrder = (await getOrder(
+    orderId,
+    OrderState.CURRENT
+  )) as OrderPrintType;
+  // previous order exists
+  if (prevOrder) {
+    return {
+      id: currOrder.id,
+      floor: currOrder.floor,
+      table: currOrder.table,
+      printLines: getOrderLineStates(prevOrder as OrderPrintType, currOrder),
+    };
+    // previous order does not exist
+  } else {
+    return {
+      id: currOrder.id,
+      floor: currOrder.floor,
+      table: currOrder.table,
+      printLines: currOrder.printLines.map((mr) => ({
+        targetPrinter: mr.categoryId,
+        state: OrderDiffState.NEW,
+        printLine: mr,
+      })),
+    };
+  }
+};
+
 const getOrderLineStates = (
   prevOrder: OrderPrintType,
   currOrder: OrderPrintType
@@ -109,4 +140,4 @@ const areDifferent = (
   return false;
 };
 
-export { getOrderToPrint };
+export { getOrderToPrint, getOrderToPrintBackUp };

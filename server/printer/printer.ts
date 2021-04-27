@@ -101,6 +101,39 @@ const printOrderLines = async (
   return printer!.execute();
 };
 
+const printOrderLinesBundle = async (
+  printerType: Printer,
+  orderToPrint: OrderToPrint
+): Promise<String | undefined> => {
+  //  no order lines to print
+  if (orderToPrint.printLines.length === 0) return;
+  let printer: NTP.printer;
+  switch (printerType) {
+    case Printer.BAR:
+      printer = new NTP.printer(BAR_PRINTER);
+      break;
+    case Printer.RESTAURANT:
+      printer = new NTP.printer(RESTAURANT_PRINTER);
+      break;
+  }
+  printHeader(printer!, orderToPrint);
+  orderToPrint.printLines.forEach((orderPrintLine) => {
+    // it is a bundle order [C, N]
+    if (Array.isArray(orderPrintLine)) {
+      orderPrintLine.forEach((opl, i) => {
+        printOrderLine(printer, opl);
+        if (i < orderPrintLine.length - 1)
+          printer.println("------------------------------------------");
+      });
+      // it is a simple order [N] | [C]
+    } else {
+      printOrderLine(printer, orderPrintLine);
+    }
+  });
+  printer!.cut();
+  return printer!.execute();
+};
+
 const filterOrderLines = (
   targetPrinter: Printer,
   orderToPrint: OrderToPrint

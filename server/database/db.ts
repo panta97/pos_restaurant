@@ -65,7 +65,7 @@ const getOrder = async (
   const db = await openDB();
   const query = `
   select id, f_floor, f_table, order_line, qty, product_id, note, product_name,
-         category_id
+         category_id, created_at, pos_session_id
   from orders
   where id = :id and state = :state
   `;
@@ -160,13 +160,24 @@ const updateOrderState = async (orderId: string) => {
   o1 second   1   prev order
   o1 first    2   delete
   */
-  const query = `
+  // UPDATE
+  const queryUpdate = `
     update orders
     set state = state + 1
     where id = ?;
   `;
   // TODO: research how this would fail
-  await db.run(query, [orderId]);
+  await db.run(queryUpdate, [orderId]);
+  // DELETE
+  const queryDelete = `
+    delete from orders
+    where id = :id
+    and state >= :state;
+  `;
+  await db.run(queryDelete, {
+    ":id": orderId,
+    ":state": OrderState.DELETE,
+  });
 };
 
 const getProducts = async (productIds: number[]) => {

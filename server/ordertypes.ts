@@ -134,4 +134,5 @@ export interface PrintResult {
 export enum OrderState {
   CURRENT = 0,
   PREVIOUS = 1,
+  DELETE = 2,
 }
