@@ -5,7 +5,8 @@
     "content_scripts": [
         {
             "matches": [
-                "http://*.dev.odoo.com/pos/*"
+                "http://*.dev.odoo.com/pos/*",
+                "http://*.odoo.com/pos/*"
             ],
             "js": [
                 "content.js"
