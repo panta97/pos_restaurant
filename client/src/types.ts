@@ -10,6 +10,7 @@ export interface OrderLine {
   productName: string;
   qty: number;
   note?: string;
+  printed: OrderPrinted;
 }
 
 export interface Order {
@@ -23,4 +24,9 @@ export interface Order {
 export enum Category {
   BAR = 6786,
   RESTAURANT = 6785,
+}
+
+export enum OrderPrinted {
+  ERROR = 0,
+  SUCCESS = 1,
 }

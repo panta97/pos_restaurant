@@ -1,3 +1,5 @@
+import { OrderPrinted } from "./ordertypes";
+
 export interface Product {
   id: number;
   name: string;
@@ -10,6 +12,7 @@ export interface OrderLine {
   productName: string;
   qty: number;
   note?: string;
+  printed: OrderPrinted;
 }
 
 export interface Order {

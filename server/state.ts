@@ -1,6 +1,6 @@
 import {
-  deleteOrder,
   getOrder,
+  getPreviousOrder,
   saveOrder,
   updateOrderState,
 } from "./database/db";
@@ -18,7 +18,8 @@ const getOrderToPrint = async (
 ): Promise<OrderToPrint> => {
   // we get the CURRENT order here as PREVIOUS order
   // since the most current order is coming from func parameter
-  const prevOrder = await getOrder(currOrder.id, OrderState.CURRENT);
+  // const prevOrder = await getOrder(currOrder.id, OrderState.CURRENT);
+  const prevOrder = await getPreviousOrder(currOrder.id);
   // previous order exists
   if (prevOrder) {
     await updateOrderState(currOrder.id);
@@ -48,7 +49,8 @@ const getOrderToPrint = async (
 const getOrderToPrintBackUp = async (
   orderId: string
 ): Promise<OrderToPrint> => {
-  const prevOrder = await getOrder(orderId, OrderState.PREVIOUS);
+  // const prevOrder = await getOrder(orderId, OrderState.PREVIOUS);
+  const prevOrder = await getPreviousOrder(orderId);
   const currOrder = (await getOrder(
     orderId,
     OrderState.CURRENT

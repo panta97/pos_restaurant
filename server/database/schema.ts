@@ -11,7 +11,8 @@ const tableOrders = `
     category_id INTEGER NOT NULL,
     created_at TEXT NOT NULL,
     pos_session_id INTEGER NOT NULL,
-    state INTEGER NOT NULL
+    state INTEGER NOT NULL,
+    printed INTEGER
 );`;
 
 const tableProducts = `

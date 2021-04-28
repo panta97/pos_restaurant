@@ -1,4 +1,4 @@
-import { Category, OrderLine } from "../../types";
+import { Category, OrderLine, OrderPrinted } from "../../types";
 
 interface OrderLinesProps {
   lines: OrderLine[];
@@ -20,7 +20,16 @@ const OrderLines = ({ lines, category }: OrderLinesProps) => {
     <>
       {lines.length > 0 && (
         <div className="break-all">
-          <p>Pedidos {categoryName}</p>
+          <div className="flex justify-between items-center">
+            <p>Pedidos {categoryName}</p>
+            {lines.some((line) => line.printed === OrderPrinted.ERROR) ? (
+              <button className=" border border-red-600 rounded text-red-600 text-sm bg-red-50 font-semibold px-1 cursor-pointer">
+                ENVIAR
+              </button>
+            ) : (
+              <p className=" text-green-600 text-sm font-semibold">ENVIADO</p>
+            )}
+          </div>
           <ul>
             {lines.map((ol) => (
               <li key={ol.orderLineId}>

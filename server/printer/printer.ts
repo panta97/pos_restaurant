@@ -1,5 +1,6 @@
 import lodash from "lodash";
 import NTP from "node-thermal-printer";
+import { updatePrintedState } from "../database/db";
 import { printerErrorHandler } from "../error";
 import {
   OrderPrintLine,
@@ -20,24 +21,6 @@ const printText = (text: string) => {
   printer.cut();
   printer.execute();
 };
-
-// const printOrderMock = (orderToPrint: OrderToPrint) => {
-//   if (orderToPrint.printLines.length === 0) return;
-//   let paper = `
-//     ${orderToPrint.id}
-//     ${orderToPrint.floor} / ${orderToPrint.table}`;
-//   paper += "\n--------------";
-//   paper += orderToPrint.printLines.reduce((acc, curr) => {
-//     acc += `\n${
-//       curr.state === State.NEW ? "NUEVO" : "CANCELADO"
-//     } - ${new Date().toLocaleTimeString()}
-//     ${curr.orderline.qty} | ${curr.orderline.product_id}
-//     ${curr.orderline.note}`;
-//     return acc;
-//   }, "");
-
-//   console.log(paper);
-// };
 
 const printHeader = (printer: NTP.printer, orderToPrint: OrderToPrint) => {
   printer.bold(true);
@@ -167,6 +150,7 @@ const printOrder = async (orderToPrint: OrderToPrint) => {
     printer: printer,
     promiseResult: promiseResults[i],
   }));
+  updatePrintedState(printResults, orderToPrint);
   printerErrorHandler(printResults, orderToPrint);
 };
 

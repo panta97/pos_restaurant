@@ -5,8 +5,13 @@ import sqlite3 from "sqlite3";
 import { productCatalogErrorHandler } from "../error";
 import {
   OrderDb,
+  OrderPrinted,
+  OrderPrintLine,
   OrderPrintType,
   OrderState,
+  OrderToPrint,
+  Printer,
+  PrintResult,
   ProductDb,
   RestProduct,
 } from "../ordertypes";
@@ -35,10 +40,10 @@ const saveOrder = async (order: OrderPrintType) => {
       await db.run(
         `insert into orders
         (id, f_floor, f_table, order_line, qty, product_id, note, product_name,
-          category_id, created_at, pos_session_id, state)
+          category_id, created_at, pos_session_id, state, printed)
         values
         (:id, :f_floor, :f_table, :order_line, :qty, :product_id, :note, :product_name,
-          :category_id, :created_at, :pos_session_id, :state)`,
+          :category_id, :created_at, :pos_session_id, :state, :printed)`,
         {
           ":id": order.id,
           ":f_floor": order.floor,
@@ -52,6 +57,7 @@ const saveOrder = async (order: OrderPrintType) => {
           ":created_at": order.createdAt,
           ":pos_session_id": order.posSessionId,
           ":state": OrderState.CURRENT,
+          ":printed": OrderPrinted.ERROR,
         }
       );
     })
@@ -91,12 +97,56 @@ const getOrder = async (
   };
 };
 
+const getPreviousOrder = async (
+  orderId: string
+): Promise<OrderPrintType | boolean> => {
+  const db = await openDB();
+  // get previous successful printed order
+  const query = `
+  select id, f_floor, f_table, order_line, qty, product_id, note, product_name,
+         category_id, created_at, pos_session_id
+  from orders
+  where id = :id
+  and printed = :printed
+  and category_id = :categoryId
+  `;
+  // partitioned by printeCategories
+  // TODO: fixed hardercoded printerCategories
+  const printerCategories = [Printer.BAR, Printer.RESTAURANT];
+  let order: OrderDb[] = [];
+  for (let i = 0; i < printerCategories.length; i++) {
+    order = order.concat(
+      await db.all(query, {
+        ":id": orderId,
+        ":printed": OrderPrinted.SUCCESS,
+        ":categoryId": printerCategories[i],
+      })
+    );
+  }
+  if (order.length === 0) return false;
+  return {
+    id: order[0].id,
+    floor: order[0].f_floor,
+    table: order[0].f_table,
+    printLines: order.map((o) => ({
+      qty: o.qty,
+      orderLine: o.order_line,
+      note: o.note,
+      productId: o.product_id,
+      productName: o.product_name,
+      categoryId: o.category_id,
+    })),
+    createdAt: order[0].created_at,
+    posSessionId: order[0].pos_session_id,
+  };
+};
+
 // get all orders of current pos session id
 const getAllOrders = async (): Promise<RestOrder[]> => {
   const db = await openDB();
   const query = `
     select id, f_floor, f_table, order_line, qty, product_id, note, product_name,
-    category_id, created_at, pos_session_id
+    category_id, created_at, pos_session_id, printed
     from orders
     where pos_session_id  =
     (
@@ -124,6 +174,7 @@ const getAllOrders = async (): Promise<RestOrder[]> => {
             productName: orders[i].product_name,
             qty: orders[i].qty,
             note: orders[i].note,
+            printed: orders[i].printed,
           },
         ],
       });
@@ -134,6 +185,7 @@ const getAllOrders = async (): Promise<RestOrder[]> => {
         productName: orders[i].product_name,
         qty: orders[i].qty,
         note: orders[i].note,
+        printed: orders[i].printed,
       });
     }
     prevOrderId = orders[i].id;
@@ -158,7 +210,7 @@ const updateOrderState = async (orderId: string) => {
   ------------------------------
   o1 thrid    0   current order
   o1 second   1   prev order
-  o1 first    2   delete
+  o1 first    2   keep all following (oldest)
   */
   // UPDATE
   const queryUpdate = `
@@ -168,16 +220,86 @@ const updateOrderState = async (orderId: string) => {
   `;
   // TODO: research how this would fail
   await db.run(queryUpdate, [orderId]);
-  // DELETE
-  const queryDelete = `
-    delete from orders
-    where id = :id
-    and state >= :state;
-  `;
-  await db.run(queryDelete, {
-    ":id": orderId,
-    ":state": OrderState.DELETE,
-  });
+  // // DELETE
+  // const queryDelete = `
+  //   delete from orders
+  //   where id = :id
+  //   and state >= :state;
+  // `;
+  // await db.run(queryDelete, {
+  //   ":id": orderId,
+  //   ":state": OrderState.DELETE,
+  // });
+};
+
+const updatePrintedState = async (
+  printResults: PrintResult[],
+  orderToPrint: OrderToPrint
+) => {
+  for (let i = 0; i < printResults.length; i++) {
+    const db = await openDB();
+    const pr = printResults[i];
+    // print SUCCESS
+    if (
+      pr.promiseResult.status === "fulfilled" &&
+      pr.promiseResult.value !== undefined
+    ) {
+      const queryUpdate = `
+        update orders
+        set printed = :printed
+        where id = :id
+        and category_id = :categoryId
+        and state = :state;
+      `;
+      await db.run(queryUpdate, {
+        ":printed": OrderPrinted.SUCCESS,
+        ":id": orderToPrint.id,
+        ":categoryId": pr.printer,
+        ":state": OrderState.CURRENT,
+      });
+      // delete previous print success
+      const queryDelete = `
+        delete from orders
+        where id = :id
+        and category_id = :categoryId
+        and state <> :state;
+      `;
+      await db.run(queryDelete, {
+        ":id": orderToPrint.id,
+        ":categoryId": pr.printer,
+        ":state": OrderState.CURRENT,
+      });
+      // print ERROR
+    } else {
+      // from printer category update all order lines to print success
+      // except the ones from error
+      const notPrintedOrderLineIds = new Set<number>();
+      orderToPrint.printLines.forEach((orderPrintLine) => {
+        if (Array.isArray(orderPrintLine)) {
+          orderPrintLine.forEach((opl) => {
+            notPrintedOrderLineIds.add(opl.printLine.orderLine);
+          });
+        } else {
+          notPrintedOrderLineIds.add(orderPrintLine.printLine.orderLine);
+        }
+      });
+      const orderLineIds = Array.from(notPrintedOrderLineIds);
+      const queryUpdate = `
+        update orders
+        set printed = :printed
+        where id = :id
+        and category_id = :categoryId
+        and state = :state;
+        and order_line not in (${orderLineIds.join(",")})
+      `;
+      await db.run(queryUpdate, {
+        ":id": orderToPrint.id,
+        ":printed": OrderPrinted.SUCCESS,
+        ":category_id": pr.printer,
+        ":state": OrderState.CURRENT,
+      });
+    }
+  }
 };
 
 const getProducts = async (productIds: number[]) => {
@@ -231,10 +353,12 @@ export {
   bootstrapDB,
   saveOrder,
   getOrder,
+  getPreviousOrder,
   getAllOrders,
   deleteOrder,
   updateOrderState,
   getProducts,
   getAllProducts,
   saveProducts,
+  updatePrintedState,
 };

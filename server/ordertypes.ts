@@ -85,6 +85,7 @@ export interface OrderDb {
   category_id: number;
   created_at: string;
   pos_session_id: number;
+  printed: number;
 }
 
 export interface ProductDb {
@@ -134,5 +135,9 @@ export interface PrintResult {
 export enum OrderState {
   CURRENT = 0,
   PREVIOUS = 1,
-  DELETE = 2,
+}
+
+export enum OrderPrinted {
+  ERROR = 0,
+  SUCCESS = 1,
 }

@@ -10,6 +10,7 @@ import { getProducts } from "./rest";
 import { getOrderToPrint, getOrderToPrintBackUp } from "./state";
 import { toCamelCase } from "./utils";
 import  path from "path";
+import { printOrderMock } from "./printer/printerMock";
 
 // init db
 bootstrapDB();
