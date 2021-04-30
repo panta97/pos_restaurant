@@ -4,13 +4,12 @@ import express, { Request, Response } from "express";
 // set up enviroment variables
 dotenv.config();
 import { bootstrapDB, getAllOrders, getAllProducts, getOTP, saveProducts } from "./database/db";
-import { getOrder, getPrevAndCurrOrder } from "./order";
-import { printOrder } from "./printer/printer";
+import { getOrder } from "./order";
+import { printOrder, printOrderSingle } from "./printer/printer";
 import { getProducts } from "./rest";
-import { getOrderToPrint, getOrderToPrintSimple } from "./state";
+import { getOrderToPrintSimple } from "./state";
 import { toCamelCase } from "./utils";
 import  path from "path";
-import { printOrderMock, printOrderSingleMock } from "./printer/printerMock";
 import { OrderPrinted } from "./ordertypes";
 
 // init db
@@ -32,7 +31,7 @@ app.post("/print-order", async (req: Request, res: Response) => {
   try {
     const order = await getOrder(req.body.orderId, req.body.orders);
     const orderToPrint = await getOrderToPrintSimple(order);
-    await printOrderMock(orderToPrint);
+    await printOrder(orderToPrint);
     res.status(200);
     response.msj = "Printed successfully";
   } catch (err) {
@@ -48,7 +47,7 @@ app.post("/print-order-specific", async (req: Request, res: Response) => {
     const {orderId, orderLine, orderAge}
       : {orderId: string, orderLine:number, orderAge: number} = req.body;
     const orderToPrint = await getOTP(orderId, orderLine, orderAge, OrderPrinted.ERROR)
-    await printOrderSingleMock(orderToPrint);
+    await printOrderSingle(orderToPrint);
     res.status(200);
     response.msj = "Printed successfully";
   } catch (err) {
