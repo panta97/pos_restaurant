@@ -1,2 +1,2 @@
 MOCK_BAR=on
-MOCK_REST=off
+MOCK_REST=on

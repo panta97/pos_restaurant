@@ -1,5 +1,5 @@
 import lodash from "lodash";
-import { updatePrintedState } from "../database/db";
+import { updatePrintedState, updatePrintedStateSingle } from "../database/db";
 import { printerErrorHandler } from "../error";
 import {
   OrderDiffState,
@@ -119,4 +119,36 @@ const printOrderMock = async (orderToPrint: OrderToPrint) => {
   printerErrorHandler(printResults, orderToPrint);
 };
 
-export { printOrderMock };
+const printOrderSingleMock = async (orderToPrint: OrderToPrint) => {
+  const printers = [Printer.RESTAURANT, Printer.BAR];
+  //  return if order state hasn't changed
+  if (orderToPrint.printLines.length === 0) return;
+  // if there are no order lines to print
+  // it will return {status: 'fulfilled', value: undefined}
+  const promiseResults = printers.map((printer) => {
+    const order = filterOrderLines(printer, orderToPrint);
+    if (isMockPrinterOn(printer)) {
+      printOrderLines(printer, order);
+      return {
+        status: "fulfilled",
+        value: "success",
+      };
+    } else {
+      return {
+        status: "rejected",
+        value: "error",
+      };
+    }
+  });
+
+  const printResults: PrintResult[] = printers.map((printer, i) => ({
+    printer: printer,
+    promiseResult: promiseResults[i] as PromiseSettledResult<
+      String | undefined
+    >,
+  }));
+  updatePrintedStateSingle(printResults, orderToPrint);
+  printerErrorHandler(printResults, orderToPrint);
+};
+
+export { printOrderMock, printOrderSingleMock };

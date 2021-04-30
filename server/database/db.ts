@@ -154,6 +154,82 @@ const getOrder = async (orderId: string): Promise<OrderPrintType | boolean> => {
   };
 };
 
+const mapOrderDiffDBToOrderToPrint = (order: OrderDiffDb): OrderToPrint => {
+  return {
+    id: order.id,
+    floor: order.f_floor,
+    table: order.f_table,
+    posSessionId: order.pos_session_id,
+    printLines: [
+      {
+        state: order.order_diff,
+        targetPrinter: order.target_printer,
+        printLine: {
+          qty: order.qty,
+          productName: order.product_name,
+          note: order.note,
+          productId: order.product_id,
+          categoryId: order.category_id,
+          orderLine: order.order_line,
+        },
+      },
+    ],
+  };
+};
+
+// OTP = order to print
+const getOTP = async (
+  orderId: string,
+  orderLine: number,
+  orderAge: number,
+  printed: OrderPrinted
+) => {
+  const db = await openDB();
+  const query = `
+  select id, f_floor, f_table, order_diff, order_line, qty, product_id, note, product_name,
+         category_id, created_at, target_printer, printed, order_age, pos_session_id
+  from d_orders
+  where id = :id
+  and order_line = :orderLine
+  and order_age = :orderAge
+  and printed = :orderPrinted;
+  `;
+  const ordersDiffDb: OrderDiffDb[] = await db.all(query, {
+    ":id": orderId,
+    ":orderLine": orderLine,
+    ":orderAge": orderAge,
+    ":orderPrinted": printed,
+  });
+  if (ordersDiffDb.length === 0) throw new Error("Retrieved 0 rows");
+  const OTP: OrderToPrint = mapOrderDiffDBToOrderToPrint(ordersDiffDb[0]);
+  // you'll get either one row (simple order)
+  // or two rows (bundle order)
+  if (ordersDiffDb.length === 1) {
+    return OTP;
+  } else if (ordersDiffDb.length === 2) {
+    // ODB = orderDiffDB
+    const secondODB = ordersDiffDb[1];
+    OTP.printLines.push({
+      state: secondODB.order_diff,
+      targetPrinter: secondODB.target_printer,
+      printLine: {
+        qty: secondODB.qty,
+        productName: secondODB.product_name,
+        note: secondODB.note,
+        productId: secondODB.product_id,
+        categoryId: secondODB.category_id,
+        orderLine: secondODB.order_line,
+      },
+    });
+    return OTP;
+  } else {
+    let errorMsg = `retrived more than thwo rows fro orderId ${orderId}\n`;
+    errorMsg += `orderLine: ${orderLine} and\n`;
+    errorMsg += `orderAge: ${orderAge}`;
+    throw new Error(errorMsg);
+  }
+};
+
 const getPreviousOrder = async (
   orderId: string
 ): Promise<OrderPrintType | boolean> => {
@@ -316,6 +392,50 @@ const updatePrintedState = async (
   }
 };
 
+const updatePrintedStateSingle = async (
+  printResults: PrintResult[],
+  orderToPrint: OrderToPrint
+) => {
+  const query = `
+    update d_orders
+    set printed = :printed
+    where id = :orderId
+    and category_id = :categoryId
+    and order_line = :orderLineId
+    and order_age = :orderAge
+  `;
+  const db = await openDB();
+
+  for (let i = 0; i < printResults.length; i++) {
+    const db = await openDB();
+    const pr = printResults[i];
+    // print ERROR
+    if (
+      pr.promiseResult.status === "rejected" ||
+      (pr.promiseResult.status === "fulfilled" &&
+        pr.promiseResult.value === undefined)
+    ) {
+      continue;
+    }
+    // print SUCCESS
+    let orderLineId = -1;
+    const printLine = orderToPrint.printLines[0];
+    if (Array.isArray(printLine)) {
+      orderLineId = printLine[0].printLine.orderLine;
+    } else {
+      orderLineId = printLine.printLine.orderLine;
+    }
+
+    await db.run(query, {
+      ":printed": OrderPrinted.SUCCESS,
+      ":orderId": orderToPrint.id,
+      ":categoryId": printResults[i].printer,
+      ":orderLineId": orderLineId,
+      ":orderAge": OrderAge.YOUNGEST,
+    });
+  }
+};
+
 const getProducts = async (productIds: number[]) => {
   const db = await openDB();
   const query = `
@@ -367,6 +487,7 @@ export {
   bootstrapDB,
   saveOrder,
   getOrder,
+  getOTP,
   getPreviousOrder,
   getAllOrders,
   deleteOrder,
@@ -376,4 +497,5 @@ export {
   saveOrderDiff,
   updateOrderDiffAge,
   updatePrintedState,
+  updatePrintedStateSingle,
 };
