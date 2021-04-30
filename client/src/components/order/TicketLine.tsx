@@ -1,20 +1,20 @@
-import { OrderDiff } from "../../types";
+import { OrderDiffLine } from "../../types";
 import { getOrderState } from "../../utils";
 
 interface TicketLineProps {
-  order: OrderDiff;
+  orderLine: OrderDiffLine;
 }
 
-const TicketLine = ({ order }: TicketLineProps) => {
+const TicketLine = ({ orderLine }: TicketLineProps) => {
   return (
     <>
       <div className="flex justify-between">
-        <span>{getOrderState(order.orderDiff)}</span>
-        <span>{order.createAt}</span>
+        <span>{getOrderState(orderLine.orderDiff)}</span>
+        <span>{orderLine.createAt}</span>
       </div>
       <div className="flex justify-between">
-        <span>Cant: {order.qty}</span>
-        <span>{order.productName}</span>
+        <span>Cant: {orderLine.qty}</span>
+        <span>{orderLine.productName}</span>
       </div>
     </>
   );

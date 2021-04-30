@@ -1,23 +1,35 @@
 import { OrderDiff } from "../../types";
-import timeDifference from "../../utils";
 
 interface TicketHeaderProps {
   order: OrderDiff;
 }
 
 const TicketHeader = ({ order }: TicketHeaderProps) => {
+  const isSend = () => {
+    const printed = order.orderLines.reduce(
+      (acc, curr) => (acc += curr.printed),
+      0
+    );
+    return printed !== 0;
+  };
+
   return (
     <>
-      <p className="font-semibold text-center">{order.id}</p>
+      <div>
+        <p className="font-semibold text-center">{order.id}</p>
+        <p className="text-right">
+          {isSend() ? (
+            <p className=" text-green-600 text-sm font-semibold">ENVIADO</p>
+          ) : (
+            <button className=" border border-red-600 rounded text-red-600 text-sm bg-red-50 font-semibold px-1 cursor-pointer">
+              ENVIAR
+            </button>
+          )}
+        </p>
+      </div>
       <div className="flex justify-between">
         <p>Piso: {order.floor}</p>
         <p>Mesa: {order.table}</p>
-      </div>
-      <div className="flex justify-between">
-        <p>{order.createAt}</p>
-        <span className="text-sm">
-          {timeDifference(new Date(order.createAt).getTime(), "es-PE")}
-        </span>
       </div>
     </>
   );

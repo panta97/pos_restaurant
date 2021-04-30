@@ -3,11 +3,11 @@ import { OrderDiff } from "../../types";
 import { OrderTicket } from "./OrderTicket";
 
 const OrderList = () => {
-  const [orders, setOrders] = useState<(OrderDiff | OrderDiff[])[]>([]);
+  const [orders, setOrders] = useState<OrderDiff[]>([]);
   useEffect(() => {
     const getOrders = async () => {
       const response = await fetch("/list-orders");
-      const result: (OrderDiff | OrderDiff[])[] = await response.json();
+      const result: OrderDiff[] = await response.json();
       setOrders(result);
     };
     getOrders();
@@ -31,8 +31,8 @@ const OrderList = () => {
       <div>Order list</div>
       <div className="px-10">
         <div className="flex flex-wrap justify-between">
-          {orders.map((order, i) => (
-            <OrderTicket key={i} order={order} />
+          {orders.map((order) => (
+            <OrderTicket key={order.id} order={order} />
           ))}
         </div>
       </div>

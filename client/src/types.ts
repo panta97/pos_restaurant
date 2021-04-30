@@ -21,11 +21,7 @@ export interface Order {
   orderLines: OrderLine[];
 }
 
-export interface OrderDiff {
-  id: string;
-  floor: string;
-  table: string;
-  createAt: string;
+export interface OrderDiffLine {
   orderLineId: number;
   categoryId: number;
   orderDiff: OrderDiffState;
@@ -34,6 +30,14 @@ export interface OrderDiff {
   qty: number;
   note?: string;
   printed: OrderPrinted;
+  createAt: string;
+}
+
+export interface OrderDiff {
+  id: string;
+  floor: string;
+  table: string;
+  orderLines: OrderDiffLine[];
 }
 
 export enum Category {

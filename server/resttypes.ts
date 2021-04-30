@@ -6,11 +6,7 @@ export interface Product {
   categoryId: number;
 }
 
-export interface Order {
-  id: string;
-  floor: string;
-  table: string;
-  createAt: string;
+export interface OrderLine {
   orderLineId: number;
   categoryId: number;
   orderDiff: OrderDiffState;
@@ -19,4 +15,12 @@ export interface Order {
   qty: number;
   note?: string;
   printed: OrderPrinted;
+  createAt: string;
+}
+
+export interface Order {
+  id: string;
+  floor: string;
+  table: string;
+  orderLines: OrderLine[];
 }

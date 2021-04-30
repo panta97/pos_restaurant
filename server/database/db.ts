@@ -203,19 +203,23 @@ const mapOderDiffDBToRestOrder = (orderDb: OrderDiffDb): RestOrder => {
     id: orderDb.id,
     floor: orderDb.f_floor,
     table: orderDb.f_table,
-    createAt: orderDb.created_at,
-    orderLineId: orderDb.order_line,
-    categoryId: orderDb.category_id,
-    orderDiff: orderDb.order_diff,
-    orderAge: orderDb.order_age,
-    productName: orderDb.product_name,
-    qty: orderDb.qty,
-    note: orderDb.note,
-    printed: orderDb.printed,
+    orderLines: [
+      {
+        orderLineId: orderDb.order_line,
+        categoryId: orderDb.category_id,
+        orderDiff: orderDb.order_diff,
+        orderAge: orderDb.order_age,
+        productName: orderDb.product_name,
+        qty: orderDb.qty,
+        note: orderDb.note,
+        printed: orderDb.printed,
+        createAt: orderDb.created_at,
+      },
+    ],
   };
 };
 // get all orders of current pos session id
-const getAllOrders = async (): Promise<(RestOrder | RestOrder[])[]> => {
+const getAllOrders = async (): Promise<RestOrder[]> => {
   const db = await openDB();
   const query = `
     select id, f_floor, f_table, order_diff, order_line, qty, product_id, note, product_name,
@@ -230,25 +234,36 @@ const getAllOrders = async (): Promise<(RestOrder | RestOrder[])[]> => {
     order by created_at desc;
   `;
   const orders: OrderDiffDb[] = await db.all(query);
-  const restOrders: (RestOrder | RestOrder[])[] = [];
-  let prevOrder: Partial<RestOrder> = { orderLineId: 0, orderAge: -1 };
-  for (let i = 0; i < orders.length; i++) {
+  if (orders.length === 0) return [];
+  const restOrders: RestOrder[] = [mapOderDiffDBToRestOrder(orders[0])];
+  let prevOrder: RestOrder = restOrders[0];
+  for (let i = 1; i < orders.length; i++) {
     const restOrder = mapOderDiffDBToRestOrder(orders[i]);
     // it is a bundle order
     if (
-      restOrder.orderLineId === prevOrder?.orderLineId &&
-      restOrder.orderAge === prevOrder?.orderAge
+      restOrder.orderLines[0].orderLineId ===
+        prevOrder.orderLines[0].orderLineId &&
+      restOrder.orderLines[0].orderAge === prevOrder.orderLines[0].orderAge
     ) {
       const prevRestOrder = restOrders[restOrders.length - 1] as RestOrder;
       // make it a bundle
-      restOrders[restOrders.length - 1] = [prevRestOrder, restOrder];
+      prevRestOrder.orderLines.push({
+        orderLineId: orders[i].order_line,
+        categoryId: orders[i].category_id,
+        orderDiff: orders[i].order_diff,
+        orderAge: orders[i].order_age,
+        productName: orders[i].product_name,
+        qty: orders[i].qty,
+        note: orders[i].note,
+        printed: orders[i].printed,
+        createAt: orders[i].created_at,
+      });
       // it is a simple order
     } else {
       restOrders.push(restOrder);
     }
     prevOrder = restOrder;
   }
-
   return restOrders;
 };
 
