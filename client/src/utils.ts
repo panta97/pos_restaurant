@@ -1,3 +1,5 @@
+import { OrderDiffState } from "./types";
+
 function timeDifference(timestamp: number, locale: string) {
   const msPerMinute = 60 * 1000;
   const msPerHour = msPerMinute * 60;
@@ -23,5 +25,14 @@ function timeDifference(timestamp: number, locale: string) {
     return new Date(timestamp).toLocaleDateString(locale);
   }
 }
+
+export const getOrderState = (state: OrderDiffState) => {
+  switch (state) {
+    case OrderDiffState.NEW:
+      return "NUEVO";
+    case OrderDiffState.CANCELLED:
+      return "CANCELADO";
+  }
+};
 
 export default timeDifference;

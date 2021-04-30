@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
-import { Order } from "../../types";
-import OrderCard from "./OrderCard";
+import { OrderDiff } from "../../types";
+import { OrderTicket } from "./OrderTicket";
 
 const OrderList = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<(OrderDiff | OrderDiff[])[]>([]);
   useEffect(() => {
     const getOrders = async () => {
       const response = await fetch("/list-orders");
-      const result: Order[] = await response.json();
+      const result: (OrderDiff | OrderDiff[])[] = await response.json();
       setOrders(result);
     };
     getOrders();
@@ -31,8 +31,8 @@ const OrderList = () => {
       <div>Order list</div>
       <div className="px-10">
         <div className="flex flex-wrap justify-between">
-          {orders.map((order) => (
-            <OrderCard key={order.id} order={order} printOrder={printOrder} />
+          {orders.map((order, i) => (
+            <OrderTicket key={i} order={order} />
           ))}
         </div>
       </div>

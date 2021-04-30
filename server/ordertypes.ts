@@ -11,7 +11,7 @@ export interface OrderData {
   amount_total: number;
   amount_tax: number;
   amount_return: number;
-  lines?: OrderLine[] | null;
+  lines?: [number, number, OrderLine][] | null;
   statement_ids?: null[] | null;
   pos_session_id: number;
   pricelist_id: number;
@@ -88,6 +88,24 @@ export interface OrderDb {
   printed: number;
 }
 
+export interface OrderDiffDb {
+  id: string;
+  f_floor: string;
+  f_table: string;
+  order_diff: number;
+  order_line: number;
+  qty: number;
+  product_id: number;
+  note?: string;
+  product_name: string;
+  category_id: number;
+  created_at: string;
+  target_printer: number;
+  printed: number;
+  order_age: number;
+  pos_session_id: number;
+}
+
 export interface ProductDb {
   id: number;
   name: string;
@@ -116,6 +134,7 @@ export interface OrderToPrint {
   id: string;
   floor: string;
   table: string;
+  posSessionId: number;
   printLines: (OrderPrintLine | OrderPrintLine[])[];
 }
 
@@ -135,6 +154,13 @@ export interface PrintResult {
 export enum OrderState {
   CURRENT = 0,
   PREVIOUS = 1,
+  DELETE = 2,
+}
+
+export enum OrderAge {
+  YOUNGEST = 0,
+  OLD = 1,
+  OLDEST = 2,
 }
 
 export enum OrderPrinted {

@@ -10,10 +10,27 @@ const tableOrders = `
     product_name VARCHAR NOT NULL,
     category_id INTEGER NOT NULL,
     created_at TEXT NOT NULL,
-    pos_session_id INTEGER NOT NULL,
-    state INTEGER NOT NULL,
-    printed INTEGER
-);`;
+    pos_session_id INTEGER NOT NULL
+    );`;
+
+const tableOrdersDiff = `
+    CREATE TABLE IF NOT EXISTS d_orders (
+    id VARCHAR NOT NULL,
+    f_floor VARCHAR NOT NULL,
+    f_table VARCHAR NOT NULL,
+    order_diff INTEGER NOT NULL,
+    order_line INTEGER NOT NULL,
+    qty INTEGER NOT NULL,
+    product_id INTEGER NOT NULL,
+    note TEXT,
+    product_name VARCHAR NOT NULL,
+    category_id INTEGER NOT NULL,
+    created_at TEXT NOT NULL,
+    target_printer INTEGER NOT NULL,
+    printed INTEGER,
+    order_age INTEGER,
+    pos_session_id INTEGER NOT NULL
+    );`;
 
 const tableProducts = `
     CREATE TABLE IF NOT EXISTS products (
@@ -22,4 +39,4 @@ const tableProducts = `
     category_id INTEGER NOT NULL
 );`;
 
-export { tableOrders, tableProducts };
+export { tableOrders, tableProducts, tableOrdersDiff };

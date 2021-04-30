@@ -2,7 +2,9 @@ import {
   getOrder,
   getPreviousOrder,
   saveOrder,
-  updateOrderState,
+  deleteOrder,
+  saveOrderDiff,
+  updateOrderDiffAge,
 } from "./database/db";
 import {
   OrderPrintLine,
@@ -22,12 +24,13 @@ const getOrderToPrint = async (
   const prevOrder = await getPreviousOrder(currOrder.id);
   // previous order exists
   if (prevOrder) {
-    await updateOrderState(currOrder.id);
+    // await updateOrderState(currOrder.id);
     await saveOrder(currOrder);
     return {
       id: currOrder.id,
       floor: currOrder.floor,
       table: currOrder.table,
+      posSessionId: currOrder.posSessionId,
       printLines: getOrderLineStates(prevOrder as OrderPrintType, currOrder),
     };
     // previous order does not exist
@@ -37,6 +40,7 @@ const getOrderToPrint = async (
       id: currOrder.id,
       floor: currOrder.floor,
       table: currOrder.table,
+      posSessionId: currOrder.posSessionId,
       printLines: currOrder.printLines.map((mr) => ({
         targetPrinter: mr.categoryId,
         state: OrderDiffState.NEW,
@@ -46,29 +50,30 @@ const getOrderToPrint = async (
   }
 };
 
-const getOrderToPrintBackUp = async (
-  orderId: string
+const getOrderToPrintSimple = async (
+  currOrder: OrderPrintType
 ): Promise<OrderToPrint> => {
-  // const prevOrder = await getOrder(orderId, OrderState.PREVIOUS);
-  const prevOrder = await getPreviousOrder(orderId);
-  const currOrder = (await getOrder(
-    orderId,
-    OrderState.CURRENT
-  )) as OrderPrintType;
+  const prevOrder = await getOrder(currOrder.id);
+  let orderToPrint: OrderToPrint;
   // previous order exists
   if (prevOrder) {
-    return {
+    await deleteOrder(currOrder.id);
+    await saveOrder(currOrder);
+    orderToPrint = {
       id: currOrder.id,
       floor: currOrder.floor,
       table: currOrder.table,
+      posSessionId: currOrder.posSessionId,
       printLines: getOrderLineStates(prevOrder as OrderPrintType, currOrder),
     };
     // previous order does not exist
   } else {
-    return {
+    await saveOrder(currOrder);
+    orderToPrint = {
       id: currOrder.id,
       floor: currOrder.floor,
       table: currOrder.table,
+      posSessionId: currOrder.posSessionId,
       printLines: currOrder.printLines.map((mr) => ({
         targetPrinter: mr.categoryId,
         state: OrderDiffState.NEW,
@@ -76,7 +81,44 @@ const getOrderToPrintBackUp = async (
       })),
     };
   }
+  await updateOrderDiffAge(currOrder.id);
+  await saveOrderDiff(orderToPrint);
+  return orderToPrint;
 };
+
+// const getOrderToPrintBackUp = async (
+//   orderId: string
+// ): Promise<OrderToPrint> => {
+//   // const prevOrder = await getOrder(orderId, OrderState.PREVIOUS);
+//   const prevOrder = await getPreviousOrder(orderId);
+//   const currOrder = (await getOrder(
+//     orderId,
+//     OrderState.CURRENT
+//   )) as OrderPrintType;
+//   // previous order exists
+//   if (prevOrder) {
+//     return {
+//       id: currOrder.id,
+//       floor: currOrder.floor,
+//       table: currOrder.table,
+//       posSessionId: currOrder.posSessionId,
+//       printLines: getOrderLineStates(prevOrder as OrderPrintType, currOrder),
+//     };
+//     // previous order does not exist
+//   } else {
+//     return {
+//       id: currOrder.id,
+//       floor: currOrder.floor,
+//       table: currOrder.table,
+//       posSessionId: currOrder.posSessionId,
+//       printLines: currOrder.printLines.map((mr) => ({
+//         targetPrinter: mr.categoryId,
+//         state: OrderDiffState.NEW,
+//         printLine: mr,
+//       })),
+//     };
+//   }
+// };
 
 const getOrderLineStates = (
   prevOrder: OrderPrintType,
@@ -142,4 +184,4 @@ const areDifferent = (
   return false;
 };
 
-export { getOrderToPrint, getOrderToPrintBackUp };
+export { getOrderToPrint, getOrderToPrintSimple };
