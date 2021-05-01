@@ -209,7 +209,7 @@ const getOTP = async (
   } else if (ordersDiffDb.length === 2) {
     // ODB = orderDiffDB
     const secondODB = ordersDiffDb[1];
-    OTP.printLines.push({
+    const secondPrintLine = {
       state: secondODB.order_diff,
       targetPrinter: secondODB.target_printer,
       printLine: {
@@ -220,7 +220,10 @@ const getOTP = async (
         categoryId: secondODB.category_id,
         orderLine: secondODB.order_line,
       },
-    });
+    } as OrderPrintLine;
+    const firstPrintLine = OTP.printLines[0] as OrderPrintLine;
+    // replace current printLines[PL] to printLines [[PL, PL]]
+    OTP.printLines[0] = [firstPrintLine, secondPrintLine];
     return OTP;
   } else {
     let errorMsg = `retrived more than thwo rows fro orderId ${orderId}\n`;
