@@ -26,7 +26,7 @@ const printHeader = (printer: NTP.printer, orderToPrint: OrderToPrint) => {
   printer.bold(true);
   printer.alignCenter();
   printer.println(orderToPrint.id);
-  printer.table([`Piso: ${orderToPrint.floor}`, orderToPrint.table]);
+  printer.table([`Piso: ${orderToPrint.floor}`, `Mesa: ${orderToPrint.table}`]);
   printer.newLine();
   printer.bold(false);
 };
