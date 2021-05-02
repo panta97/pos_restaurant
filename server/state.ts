@@ -126,18 +126,40 @@ const getOrderLineStates = (
     } else if (pol && col) {
       // check if it has been updated
       if (areDifferent(pol, col)) {
-        orderPrintLines.push([
-          {
-            targetPrinter: pol.categoryId,
-            state: OrderDiffState.CANCELLED,
-            printLine: pol,
-          },
-          {
-            targetPrinter: col.categoryId,
-            state: OrderDiffState.NEW,
-            printLine: col,
-          },
-        ]);
+        // added more in qty
+        if (col.qty > pol.qty && col.note === pol.note) {
+          col.qty -= pol.qty;
+          orderPrintLines.push([
+            {
+              targetPrinter: col.categoryId,
+              state: OrderDiffState.NEW,
+              printLine: col,
+            },
+          ]);
+          // remove in qty
+        } else if (col.qty < pol.qty && col.note === pol.note) {
+          pol.qty -= col.qty;
+          orderPrintLines.push([
+            {
+              targetPrinter: pol.categoryId,
+              state: OrderDiffState.CANCELLED,
+              printLine: pol,
+            },
+          ]);
+        } else {
+          orderPrintLines.push([
+            {
+              targetPrinter: pol.categoryId,
+              state: OrderDiffState.CANCELLED,
+              printLine: pol,
+            },
+            {
+              targetPrinter: col.categoryId,
+              state: OrderDiffState.NEW,
+              printLine: col,
+            },
+          ]);
+        }
       }
     }
   }
